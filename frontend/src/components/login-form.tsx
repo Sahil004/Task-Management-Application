@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { useToast } from '@/components/toast-provider';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { loginUser, selectAuth } from '@/lib/store/auth-slice';
 
@@ -10,6 +11,7 @@ export function LoginForm() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const auth = useAppSelector(selectAuth);
+  const { showToast } = useToast();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,9 +28,19 @@ export function LoginForm() {
 
     try {
       await dispatch(loginUser({ email, password })).unwrap();
+      showToast({
+        tone: 'success',
+        title: 'Welcome back',
+        description: 'You are signed in and ready to manage your tasks.',
+      });
       router.replace('/dashboard');
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'Unable to login.');
+      showToast({
+        tone: 'error',
+        title: 'Login failed',
+        description: error instanceof Error ? error.message : 'Unable to login.',
+      });
     }
   };
 

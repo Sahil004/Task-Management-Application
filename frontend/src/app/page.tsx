@@ -27,6 +27,27 @@ export default function HomePage() {
           </nav>
         </header>
 
+        <div className="mt-6 flex flex-wrap gap-3 md:hidden">
+          <Link
+            href="/login"
+            className="rounded-full border border-ink/10 bg-white/80 px-4 py-2 text-sm font-semibold text-ink transition hover:bg-white"
+          >
+            Login
+          </Link>
+          <Link
+            href="/register"
+            className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink/90"
+          >
+            Create Account
+          </Link>
+          <a
+            href="http://localhost:5000/api-docs"
+            className="rounded-full bg-butter/50 px-4 py-2 text-sm font-semibold text-ink transition hover:bg-butter/70"
+          >
+            API Docs
+          </a>
+        </div>
+
         <section className="grid flex-1 items-center gap-12 py-16 lg:grid-cols-[1.1fr_0.9fr] lg:py-24">
           <div>
             <div className="inline-flex items-center rounded-full border border-clay/20 bg-white/70 px-4 py-2 text-sm text-ink/70 shadow-panel">
@@ -36,6 +57,18 @@ export default function HomePage() {
               The frontend is tuned for fast daily use: focused forms, clear priority cues, a responsive
               dashboard, and task controls that stay understandable on mobile and desktop.
             </p>
+            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+              {[
+                { label: 'Next.js', detail: 'App Router client for auth and dashboard flows' },
+                { label: 'Redux', detail: 'Central task and auth state with async actions' },
+                { label: 'Tailwind', detail: 'Responsive UI tuned for screenshots and mobile' },
+              ].map((item) => (
+                <div key={item.label} className="rounded-3xl border border-white/70 bg-white/60 p-4 shadow-sm">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-clay">{item.label}</p>
+                  <p className="mt-2 text-sm leading-6 text-ink/65">{item.detail}</p>
+                </div>
+              ))}
+            </div>
             <div className="mt-10 flex flex-wrap gap-4">
               <Link
                 href="/register"

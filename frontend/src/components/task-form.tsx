@@ -72,6 +72,13 @@ export function TaskForm({
       </div>
 
       <div className="mt-5 space-y-4">
+        {mode === 'create' && !loading && (
+          <div className="rounded-3xl border border-dashed border-clay/20 bg-clay/5 px-4 py-4 text-sm leading-6 text-ink/65">
+            Tip: start with a concise title, give high-priority items a due date, and use status to
+            keep the board readable in screenshots and daily use.
+          </div>
+        )}
+
         <label className="block">
           <span className="mb-2 block text-sm font-medium text-ink">Title</span>
           <input

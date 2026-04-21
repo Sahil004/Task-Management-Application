@@ -1,6 +1,6 @@
 # Task Management Application
 
-A full-stack task management application with JWT-based authentication and personal task tracking. The backend is implemented with Node.js, Express, TypeScript, and MongoDB. It supports authentication, protected task CRUD operations, dashboard statistics, OpenAPI documentation, and seed/test tooling.
+A full-stack task management application with JWT-based authentication and personal task tracking. The backend is implemented with Node.js, Express, TypeScript, and MongoDB. The frontend uses Next.js, Tailwind CSS, and Redux Toolkit for a responsive task dashboard with authentication, filtering, and task management flows.
 
 ## Project Overview
 
@@ -13,11 +13,12 @@ This project is being built to satisfy the assignment requirement for a task man
 - backend API documentation
 - seed data and tests
 
-The current repository contains a completed backend foundation and is structured so the frontend can be added cleanly on top of the documented API contract.
+The repository now contains both the backend API and a frontend client built around the same documented REST contract.
 
 ## Tech Stack
 
 - Backend: Node.js, Express.js, TypeScript
+- Frontend: Next.js (App Router), TypeScript, Tailwind CSS, Redux Toolkit
 - Database: MongoDB with Mongoose
 - Authentication: JWT, bcryptjs
 - Validation: express-validator
@@ -40,6 +41,11 @@ backend/
     swagger/
     test/
     __tests__/
+frontend/
+  src/
+    app/
+    components/
+    lib/
 ```
 
 ## Backend Features
@@ -60,6 +66,17 @@ backend/
 - OpenAPI docs at `GET /api-docs` and raw spec at `GET /api-docs.json`
 - Seed script for demo data
 - Passing backend test suite
+
+## Frontend Features
+
+- Responsive Next.js interface with App Router
+- Register and login flows wired to the backend REST API
+- Redux-managed auth and task state
+- Dashboard summary cards and workload pulse
+- Mobile-friendly panel switching between task form and task board
+- Task create, edit, delete, filter, and sort flows
+- Priority badges and overdue indicators for visual scanning
+- Confirmation modal before deletion
 
 ## Environment Variables
 
@@ -111,6 +128,32 @@ npm run dev
 
 The API will start at `http://localhost:5000`.
 
+## Frontend Setup
+
+### Install
+
+```bash
+cd frontend
+npm install
+```
+
+### Configure Environment
+
+Create `frontend/.env`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+```
+
+### Run the Frontend
+
+```bash
+cd frontend
+npm run dev
+```
+
+The frontend will start at `http://localhost:3000`.
+
 ## Seed Data
 
 Run the seed script:
@@ -141,6 +184,13 @@ Build the TypeScript backend:
 ```bash
 cd backend
 npm run build
+```
+
+Type-check the frontend:
+
+```bash
+cd frontend
+npx tsc --noEmit
 ```
 
 ## API Endpoints
@@ -186,10 +236,18 @@ This backend uses stateless JWT authentication. Because the token is not stored 
 
 ## Screenshots / Demo
 
-Frontend screenshots or a demo GIF/video can be added here once the UI is completed. The backend API is already documented through Swagger for review and manual testing.
+Suggested screenshots for submission:
+
+- Landing page
+- Login / register screens
+- Dashboard with summary cards
+- Task board with task form visible
+- Mobile dashboard layout
+
+The backend API is documented through Swagger for review and manual testing, and the frontend is now wired against that REST API.
 
 ## Additional Documentation
 
 - Architecture notes: [ARCHITECTURE.md](/c:/Sahil/Task-Management-Application/ARCHITECTURE.md)
 - Backend env template: [backend/.env.example](/c:/Sahil/Task-Management-Application/backend/.env.example)
-
+- Frontend env template: [frontend/.env.example](/c:/Sahil/Task-Management-Application/frontend/.env.example)

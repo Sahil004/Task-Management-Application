@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { useToast } from '@/components/toast-provider';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { registerUser, selectAuth } from '@/lib/store/auth-slice';
 
@@ -10,6 +11,7 @@ export function RegisterForm() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const auth = useAppSelector(selectAuth);
+  const { showToast } = useToast();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -37,9 +39,19 @@ export function RegisterForm() {
 
     try {
       await dispatch(registerUser({ name, email, password })).unwrap();
+      showToast({
+        tone: 'success',
+        title: 'Account created',
+        description: 'Your workspace is ready. Let’s add your first task.',
+      });
       router.replace('/dashboard');
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'Unable to register.');
+      showToast({
+        tone: 'error',
+        title: 'Registration failed',
+        description: error instanceof Error ? error.message : 'Unable to register.',
+      });
     }
   };
 
