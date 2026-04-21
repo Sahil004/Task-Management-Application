@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import { api } from '@/lib/api';
-import { DashboardData, Task, TaskFormValues } from '@/lib/types';
+import { DashboardData, Task, TaskFormValues, TaskReorderInput } from '@/lib/types';
 import { RootState } from '@/lib/store';
 
 interface TasksState {
@@ -70,6 +70,19 @@ export const deleteTask = createAsyncThunk('tasks/deleteTask', async (id: string
   return id;
 });
 
+export const reorderTasks = createAsyncThunk(
+  'tasks/reorderTasks',
+  async (payload: { tasks: TaskReorderInput[]; nextItems: Task[] }) => {
+    await api<{ message: string }>('/tasks/reorder', {
+      method: 'PATCH',
+      auth: true,
+      body: JSON.stringify({ tasks: payload.tasks }),
+    });
+
+    return payload.nextItems;
+  },
+);
+
 const tasksSlice = createSlice({
   name: 'tasks',
   initialState,
@@ -119,6 +132,18 @@ const tasksSlice = createSlice({
       })
       .addCase(deleteTask.fulfilled, (state, action) => {
         state.items = state.items.filter((task) => task._id !== action.payload);
+      })
+      .addCase(reorderTasks.pending, (state) => {
+        state.submitting = true;
+        state.error = null;
+      })
+      .addCase(reorderTasks.fulfilled, (state, action) => {
+        state.submitting = false;
+        state.items = action.payload;
+      })
+      .addCase(reorderTasks.rejected, (state, action) => {
+        state.submitting = false;
+        state.error = action.error.message || 'Unable to reorder tasks';
       });
   },
 });

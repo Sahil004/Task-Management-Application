@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useState } from 'react';
 
 import { TaskFormValues } from '@/lib/types';
 
@@ -29,10 +29,6 @@ export function TaskForm({
 }) {
   const [values, setValues] = useState<TaskFormValues>(initialValues ?? defaultValues);
   const [formError, setFormError] = useState('');
-
-  useEffect(() => {
-    setValues(initialValues ?? defaultValues);
-  }, [initialValues]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

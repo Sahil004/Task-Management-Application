@@ -17,10 +17,11 @@ import {
   deleteTask,
   fetchDashboard,
   fetchTasks,
+  reorderTasks,
   selectTasks,
   updateTask,
 } from '@/lib/store/tasks-slice';
-import { TaskFormValues } from '@/lib/types';
+import { Task, TaskFormValues } from '@/lib/types';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -36,6 +37,64 @@ export default function DashboardPage() {
   const [mobilePanel, setMobilePanel] = useState<'compose' | 'board'>('board');
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+
+  const buildReorderedTasks = (
+    currentTasks: Task[],
+    draggedTaskId: string,
+    nextStatus: Task['status'],
+    beforeTaskId?: string,
+  ) => {
+    const draggedTask = currentTasks.find((task) => task._id === draggedTaskId);
+    if (!draggedTask) {
+      return null;
+    }
+
+    const remainingTasks = currentTasks.filter((task) => task._id !== draggedTaskId);
+    const destinationTasks = remainingTasks
+      .filter((task) => task.status === nextStatus)
+      .sort((a, b) => a.position - b.position);
+
+    const insertIndex = beforeTaskId
+      ? destinationTasks.findIndex((task) => task._id === beforeTaskId)
+      : destinationTasks.length;
+
+    const movedTask: Task = {
+      ...draggedTask,
+      status: nextStatus,
+    };
+
+    if (insertIndex >= 0) {
+      destinationTasks.splice(insertIndex, 0, movedTask);
+    } else {
+      destinationTasks.push(movedTask);
+    }
+
+    const byStatus: Record<Task['status'], Task[]> = {
+      todo: [],
+      'in-progress': [],
+      done: [],
+    };
+
+    remainingTasks
+      .filter((task) => task.status !== nextStatus)
+      .forEach((task) => {
+        byStatus[task.status].push(task);
+      });
+
+    byStatus[nextStatus] = destinationTasks;
+
+    const normalized = (Object.keys(byStatus) as Task['status'][]).flatMap((status) =>
+      byStatus[status]
+        .sort((a, b) => a.position - b.position)
+        .map((task, index) => ({
+          ...task,
+          status,
+          position: index,
+        })),
+    );
+
+    return normalized;
+  };
 
   useEffect(() => {
     dispatch(restoreAuth());
@@ -115,6 +174,32 @@ export default function DashboardPage() {
     setDeleteTargetId(null);
   };
 
+  const handleReorder = async (taskId: string, nextStatus: Task['status'], beforeTaskId?: string) => {
+    const nextItems = buildReorderedTasks(taskState.items, taskId, nextStatus, beforeTaskId);
+
+    if (!nextItems) {
+      return;
+    }
+
+    await dispatch(
+      reorderTasks({
+        tasks: nextItems.map((task) => ({
+          id: task._id,
+          status: task.status,
+          position: task.position,
+        })),
+        nextItems,
+      }),
+    ).unwrap();
+
+    await dispatch(fetchDashboard());
+    showToast({
+      tone: 'info',
+      title: 'Board updated',
+      description: 'Task positions were saved across your Kanban columns.',
+    });
+  };
+
   const handleLogout = async () => {
     await dispatch(logoutUser());
     showToast({
@@ -173,11 +258,13 @@ export default function DashboardPage() {
               <TaskBoard
                 tasks={taskState.items}
                 loading={taskState.loading}
+                dragging={taskState.submitting}
                 onEdit={(taskId) => {
                   setEditingTaskId(taskId);
                   setMobilePanel('compose');
                 }}
                 onDelete={(taskId) => setDeleteTargetId(taskId)}
+                onReorder={handleReorder}
               />
             </div>
           </div>

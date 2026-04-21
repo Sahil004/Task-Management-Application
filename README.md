@@ -18,7 +18,7 @@ The repository now contains both the backend API and a frontend client built aro
 ## Tech Stack
 
 - Backend: Node.js, Express.js, TypeScript
-- Frontend: Next.js (App Router), TypeScript, Tailwind CSS, Redux Toolkit
+- Frontend: Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS, Redux Toolkit
 - Database: MongoDB with Mongoose
 - Authentication: JWT, bcryptjs
 - Validation: express-validator
@@ -77,6 +77,7 @@ frontend/
 - Task create, edit, delete, filter, and sort flows
 - Priority badges and overdue indicators for visual scanning
 - Confirmation modal before deletion
+- Drag-and-drop Kanban reordering backed by the reorder API
 
 ## Environment Variables
 
@@ -95,7 +96,7 @@ Copy [backend/.env.example](/c:/Sahil/Task-Management-Application/backend/.env.e
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20.9+
 - npm
 - MongoDB running locally or a MongoDB Atlas connection string
 
@@ -191,6 +192,13 @@ Type-check the frontend:
 ```bash
 cd frontend
 npx tsc --noEmit
+```
+
+Lint the frontend:
+
+```bash
+cd frontend
+npm run lint
 ```
 
 ## API Endpoints

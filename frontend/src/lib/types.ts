@@ -39,3 +39,9 @@ export interface TaskFormValues {
   status: Task['status'];
   dueDate: string;
 }
+
+export interface TaskReorderInput {
+  id: string;
+  status: Task['status'];
+  position: number;
+}
