@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import { ChevronDown, Check } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-
+import { createPortal } from "react-dom";
 export type SelectOption = {
   value: string;
   label: string;
@@ -44,7 +44,7 @@ export function CustomSelect({
   }, []);
 
   return (
-    <div className={clsx("relative", className)} ref={rootRef}>
+    <div className={clsx("relative isolate z-50", className)} ref={rootRef}>
       <button
         type="button"
         aria-haspopup="listbox"
@@ -68,43 +68,44 @@ export function CustomSelect({
         />
       </button>
 
-      {open && (
-        <div
-          role="listbox"
-          className={clsx(
-            "absolute z-30 mt-2 max-h-60 w-full overflow-auto rounded-xl border p-1 shadow-xl",
-            menuClassName,
-          )}
-          style={{
-            borderColor: "var(--border-2)",
-            background: "var(--bg-card)",
-          }}
-        >
-          {options.map((option) => {
-            const active = option.value === value;
-            return (
-              <button
-                key={option.value || "__empty"}
-                type="button"
-                role="option"
-                aria-selected={active}
-                onClick={() => {
-                  onChange(option.value);
-                  setOpen(false);
-                }}
-                className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-xs transition-all"
-                style={{
-                  color: active ? "#6e73ff" : "var(--fg-2)",
-                  background: active ? "rgba(110,115,255,0.1)" : "transparent",
-                }}
-              >
-                <span className="truncate">{option.label}</span>
-                {active && <Check size={13} />}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      {open &&
+        rootRef.current &&
+        createPortal(
+          <div
+            role="listbox"
+            className="fixed z-[99999] max-h-60 overflow-auto rounded-xl border p-1 shadow-2xl backdrop-blur-md"
+            style={{
+              top: rootRef.current.getBoundingClientRect().bottom + 8,
+              left: rootRef.current.getBoundingClientRect().left,
+              width: rootRef.current.offsetWidth,
+              background: "rgba(20,20,28,0.75)",
+              backdropFilter: "blur(16px)",
+            }}
+          >
+            {options.map((option) => {
+              const active = option.value === value;
+              return (
+                <button
+                  key={option.value}
+                  onClick={() => {
+                    onChange(option.value);
+                    setOpen(false);
+                  }}
+                  className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-xs"
+                  style={{
+                    color: active ? "#6e73ff" : "var(--fg-2)",
+                    background: active
+                      ? "rgba(110,115,255,0.12)"
+                      : "transparent",
+                  }}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
