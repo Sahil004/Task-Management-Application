@@ -8,8 +8,10 @@ import { DashboardSkeleton } from "@/components/dashboard-skeleton";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { TaskBoard } from "@/components/task-board";
 import { TaskForm } from "@/components/task-form";
+import { TaskFilterSelect } from "@/components/task-filter-select";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useToast } from "@/components/toast-provider";
+import { GradientCtaButton } from "@/components/ui/gradient-cta-button";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { restoreAuth, selectAuth } from "@/lib/store/auth-slice";
 import {
@@ -22,7 +24,12 @@ import {
   selectTasks,
   updateTask,
 } from "@/lib/store/tasks-slice";
+import {
+  TASK_PRIORITY_OPTIONS,
+  TASK_STATUS_OPTIONS,
+} from "@/lib/task-options";
 import { Task, TaskFormValues } from "@/lib/types";
+import { SelectOption } from "@/components/ui/custom-select";
 import { Plus, X } from "lucide-react";
 
 export default function TasksPage() {
@@ -188,17 +195,25 @@ export default function TasksPage() {
     });
   };
 
-  const selStyle = {
-    padding: "8px 14px",
-    borderRadius: 12,
-    fontSize: 12,
-    fontWeight: 500,
-    border: "1px solid var(--border-2)",
-    background: "var(--bg-card)",
-    color: "var(--fg-2)",
-    outline: "none",
-    cursor: "pointer",
-  } as React.CSSProperties;
+  const statusFilterOptions: SelectOption[] = [
+    { value: "", label: "All Statuses" },
+    ...TASK_STATUS_OPTIONS,
+  ];
+
+  const priorityFilterOptions: SelectOption[] = [
+    { value: "", label: "All Priorities" },
+    ...TASK_PRIORITY_OPTIONS,
+  ];
+
+  const sortByOptions: SelectOption[] = [
+    { value: "createdAt", label: "Sort: Created" },
+    { value: "dueDate", label: "Sort: Due Date" },
+  ];
+
+  const orderOptions: SelectOption[] = [
+    { value: "desc", label: "Newest First" },
+    { value: "asc", label: "Oldest First" },
+  ];
 
   return (
     <AuthRedirect mode="protected">
@@ -222,20 +237,15 @@ export default function TasksPage() {
                 {taskState.items.length} tasks · drag to reorder across columns
               </p>
             </div>
-            <button
+            <GradientCtaButton
               onClick={() => {
                 setEditingTaskId(null);
                 setShowForm(true);
               }}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-semibold text-white transition-all hover:opacity-90 hover:scale-[1.02]"
-              style={{
-                background: "linear-gradient(135deg, #6e73ff, #3ecfb8)",
-                boxShadow: "0 0 20px rgba(110,115,255,0.3)",
-              }}
+              leftIcon={<Plus size={14} />}
             >
-              <Plus size={14} />
               New Task
-            </button>
+            </GradientCtaButton>
           </div>
 
           {/* accent bar */}
@@ -252,44 +262,30 @@ export default function TasksPage() {
             className="flex flex-wrap items-center gap-3 mb-6 animate-fade-up"
             style={{ animationDelay: "0.05s" }}
           >
-            <select
-              style={selStyle}
+            <TaskFilterSelect
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="">All Statuses</option>
-              <option value="todo">To Do</option>
-              <option value="in-progress">In Progress</option>
-              <option value="done">Done</option>
-            </select>
-            <select
-              style={selStyle}
+              onChange={setStatusFilter}
+              options={statusFilterOptions}
+              placeholder="All Statuses"
+            />
+            <TaskFilterSelect
               value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value)}
-            >
-              <option value="">All Priorities</option>
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-            <select
-              style={selStyle}
+              onChange={setPriorityFilter}
+              options={priorityFilterOptions}
+              placeholder="All Priorities"
+            />
+            <TaskFilterSelect
               value={sortBy}
-              onChange={(e) =>
-                setSortBy(e.target.value as "createdAt" | "dueDate")
-              }
-            >
-              <option value="createdAt">Sort: Created</option>
-              <option value="dueDate">Sort: Due Date</option>
-            </select>
-            <select
-              style={selStyle}
+              onChange={(value) => setSortBy(value as "createdAt" | "dueDate")}
+              options={sortByOptions}
+              placeholder="Sort"
+            />
+            <TaskFilterSelect
               value={order}
-              onChange={(e) => setOrder(e.target.value as "asc" | "desc")}
-            >
-              <option value="desc">Newest First</option>
-              <option value="asc">Oldest First</option>
-            </select>
+              onChange={(value) => setOrder(value as "asc" | "desc")}
+              options={orderOptions}
+              placeholder="Order"
+            />
             {(statusFilter || priorityFilter) && (
               <button
                 onClick={() => {

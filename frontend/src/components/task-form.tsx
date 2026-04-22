@@ -2,7 +2,13 @@
 
 import { FormEvent, useState } from "react";
 import { TaskFormValues } from "@/lib/types";
-import { Circle, CircleAlert, Loader } from "lucide-react";
+import { CircleAlert, Loader } from "lucide-react";
+import { CustomSelect, SelectOption } from "@/components/ui/custom-select";
+import { GradientCtaButton } from "@/components/ui/gradient-cta-button";
+import {
+  TASK_PRIORITY_OPTIONS,
+  TASK_STATUS_OPTIONS,
+} from "@/lib/task-options";
 
 const DEFAULT: TaskFormValues = {
   title: "",
@@ -42,8 +48,12 @@ export function TaskForm({
       setFormError("Title is required.");
       return;
     }
-    await onSubmit(values);
-    if (mode === "create") setValues(DEFAULT);
+    try {
+      await onSubmit(values);
+      if (mode === "create") setValues(DEFAULT);
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "Unable to save task.");
+    }
   };
 
   const inputCls =
@@ -55,21 +65,20 @@ export function TaskForm({
   } as React.CSSProperties;
 
   const focusIn = (
-    e: React.FocusEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >,
+    e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     e.currentTarget.style.borderColor = "#6e73ff";
     e.currentTarget.style.boxShadow = "0 0 0 3px rgba(110,115,255,0.1)";
   };
   const focusOut = (
-    e: React.FocusEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >,
+    e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     e.currentTarget.style.borderColor = "var(--border-2)";
     e.currentTarget.style.boxShadow = "none";
   };
+
+  const priorityOptions: SelectOption[] = TASK_PRIORITY_OPTIONS;
+  const statusOptions: SelectOption[] = TASK_STATUS_OPTIONS;
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -137,18 +146,12 @@ export function TaskForm({
           >
             Priority
           </label>
-          <select
+          <CustomSelect
             value={values.priority}
-            onChange={(e) => set("priority", e.target.value)}
-            className={inputCls}
-            style={inputStyle}
-            onFocus={focusIn}
-            onBlur={focusOut}
-          >
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-          </select>
+            onChange={(nextValue) => set("priority", nextValue)}
+            options={priorityOptions}
+            placeholder="Select priority"
+          />
         </div>
         <div>
           <label
@@ -157,18 +160,12 @@ export function TaskForm({
           >
             Status
           </label>
-          <select
+          <CustomSelect
             value={values.status}
-            onChange={(e) => set("status", e.target.value)}
-            className={inputCls}
-            style={inputStyle}
-            onFocus={focusIn}
-            onBlur={focusOut}
-          >
-            <option value="todo">To Do</option>
-            <option value="in-progress">In Progress</option>
-            <option value="done">Done</option>
-          </select>
+            onChange={(nextValue) => set("status", nextValue)}
+            options={statusOptions}
+            placeholder="Select status"
+          />
         </div>
       </div>
 
@@ -222,14 +219,11 @@ export function TaskForm({
             Cancel
           </button>
         )}
-        <button
+        <GradientCtaButton
           type="submit"
           disabled={loading}
-          className="flex-1 py-3 rounded-2xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
-          style={{
-            background: "linear-gradient(135deg, #6e73ff, #3ecfb8)",
-            boxShadow: "0 0 16px rgba(110,115,255,0.25)",
-          }}
+          className="flex-1 justify-center py-3"
+          style={{ boxShadow: "0 0 16px rgba(110,115,255,0.25)" }}
         >
           {loading ? (
             <span className="flex items-center justify-center gap-2">
@@ -241,7 +235,7 @@ export function TaskForm({
           ) : (
             "Save Changes"
           )}
-        </button>
+        </GradientCtaButton>
       </div>
     </form>
   );

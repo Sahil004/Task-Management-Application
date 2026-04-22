@@ -7,69 +7,27 @@ import Link from "next/link";
 import { AuthRedirect } from "@/components/auth-redirect";
 import { DashboardSkeleton } from "@/components/dashboard-skeleton";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { DashboardStatCard } from "@/components/dashboard-stat-card";
+import {
+  gradientCtaClassName,
+  gradientCtaStyle,
+} from "@/components/ui/gradient-cta-button";
+import { SurfaceCard } from "@/components/ui/surface-card";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { restoreAuth, selectAuth } from "@/lib/store/auth-slice";
 import { fetchDashboard, selectTasks } from "@/lib/store/tasks-slice";
 import {
-  CheckCircle,
+  TASK_PRIORITY_META,
+  TASK_STATUS_LABELS,
+} from "@/lib/task-options";
+import {
   CircleAlert,
   CircleCheckBig,
-  CircleDashed,
   Clock,
   Loader,
   Plus,
   SquareCheckBig,
 } from "lucide-react";
-
-/* ── stat card ── */
-function StatCard({
-  label,
-  value,
-  color,
-  bg,
-  icon,
-  loading,
-}: {
-  label: string;
-  value: number;
-  color: string;
-  bg: string;
-  icon: React.ReactNode;
-  loading: boolean;
-}) {
-  return (
-    <div
-      className="rounded-2xl p-5 flex flex-col gap-3 transition-all duration-200 hover:scale-[1.02] cursor-default"
-      style={{
-        border: "1px solid var(--border)",
-        background: "var(--bg-card)",
-      }}
-    >
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium" style={{ color: "var(--fg-3)" }}>
-          {label}
-        </span>
-        <div
-          className="w-8 h-8 rounded-xl flex items-center justify-center"
-          style={{ background: bg, color }}
-        >
-          {icon}
-        </div>
-      </div>
-      <p className="text-3xl font-bold" style={{ color }}>
-        {loading ? (
-          <span
-            className="inline-block w-8 h-8 rounded-xl animate-pulse"
-            style={{ background: bg }}
-          />
-        ) : (
-          value
-        )}
-      </p>
-      <div className="h-0.5 rounded-full" style={{ background: bg }} />
-    </div>
-  );
-}
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -131,11 +89,8 @@ export default function DashboardPage() {
             </div>
             <Link
               href="/dashboard/tasks"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-semibold text-white transition-all hover:opacity-90 hover:scale-[1.02]"
-              style={{
-                background: "linear-gradient(135deg, #6e73ff, #3ecfb8)",
-                boxShadow: "0 0 20px rgba(110,115,255,0.3)",
-              }}
+              className={gradientCtaClassName}
+              style={gradientCtaStyle}
             >
               <Plus size={14} />
               New Task
@@ -156,7 +111,7 @@ export default function DashboardPage() {
             className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6 animate-fade-up"
             style={{ animationDelay: "0.05s" }}
           >
-            <StatCard
+            <DashboardStatCard
               label="Total"
               value={total}
               color="#6e73ff"
@@ -164,7 +119,7 @@ export default function DashboardPage() {
               loading={loading}
               icon={<SquareCheckBig size={14} />}
             />
-            <StatCard
+            <DashboardStatCard
               label="To Do"
               value={todo}
               color="var(--fg-2)"
@@ -172,7 +127,7 @@ export default function DashboardPage() {
               loading={loading}
               icon={<CircleAlert size={14} />}
             />
-            <StatCard
+            <DashboardStatCard
               label="In Progress"
               value={inProg}
               color="#6e73ff"
@@ -180,7 +135,7 @@ export default function DashboardPage() {
               loading={loading}
               icon={<Loader size={14} />}
             />
-            <StatCard
+            <DashboardStatCard
               label="Done"
               value={done}
               color="#3ecfb8"
@@ -188,7 +143,7 @@ export default function DashboardPage() {
               loading={loading}
               icon={<CircleCheckBig size={14} />}
             />
-            <StatCard
+            <DashboardStatCard
               label="Overdue"
               value={overdue}
               color="#ff6e9c"
@@ -204,13 +159,7 @@ export default function DashboardPage() {
             style={{ animationDelay: "0.1s" }}
           >
             {/* Progress card */}
-            <div
-              className="rounded-2xl p-5"
-              style={{
-                border: "1px solid var(--border)",
-                background: "var(--bg-card)",
-              }}
-            >
+            <SurfaceCard className="p-5">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p
@@ -272,7 +221,7 @@ export default function DashboardPage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </SurfaceCard>
 
             {/* Workload pulse */}
             <div
@@ -370,35 +319,27 @@ export default function DashboardPage() {
                   </p>
                   <Link
                     href="/dashboard/tasks"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl text-xs font-semibold text-white"
-                    style={{
-                      background: "linear-gradient(135deg, #6e73ff, #3ecfb8)",
-                    }}
+                    className={`${gradientCtaClassName} px-4 py-2 text-xs`}
+                    style={gradientCtaStyle}
                   >
                     Add task
                   </Link>
                 </div>
               ) : (
                 (dashboard?.recentTasks ?? []).slice(0, 5).map((task, i) => {
-                  const PRIORITY_COLOR: Record<string, string> = {
-                    high: "#ff6e9c",
-                    medium: "#6e73ff",
-                    low: "#3ecfb8",
-                  };
                   const STATUS_COLOR: Record<string, string> = {
                     todo: "var(--fg-3)",
                     "in-progress": "#6e73ff",
                     done: "#3ecfb8",
                   };
-                  const pc = PRIORITY_COLOR[task.priority] ?? "#6e73ff";
+                  const priorityMeta = TASK_PRIORITY_META[task.priority];
+                  const pc = priorityMeta?.color ?? "#6e73ff";
                   const sc = STATUS_COLOR[task.status] ?? "var(--fg-3)";
                   return (
-                    <div
+                    <SurfaceCard
                       key={task._id}
-                      className="flex items-center gap-3 p-4 rounded-2xl transition-all duration-200 hover:scale-[1.005] animate-fade-up"
+                      className="flex items-center gap-3 p-4 transition-all duration-200 hover:scale-[1.005] animate-fade-up"
                       style={{
-                        border: "1px solid var(--border)",
-                        background: "var(--bg-card)",
                         animationDelay: `${0.15 + i * 0.04}s`,
                       }}
                     >
@@ -425,7 +366,7 @@ export default function DashboardPage() {
                         className="text-[10px] font-semibold px-2.5 py-1 rounded-full shrink-0"
                         style={{ color: sc, background: `${sc}18` }}
                       >
-                        {task.status.replace("-", " ")}
+                        {TASK_STATUS_LABELS[task.status]}
                       </span>
                       <span
                         className="text-[10px] font-semibold px-2.5 py-1 rounded-full shrink-0"
@@ -437,7 +378,7 @@ export default function DashboardPage() {
                       >
                         {task.priority}
                       </span>
-                    </div>
+                    </SurfaceCard>
                   );
                 })
               )}

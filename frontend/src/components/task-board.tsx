@@ -4,12 +4,8 @@ import clsx from "clsx";
 import { useState } from "react";
 import { Task } from "@/lib/types";
 import { CircleAlert, CircleCheckBig, Loader } from "lucide-react";
-
-const STATUS_LABELS: Record<Task["status"], string> = {
-  todo: "To Do",
-  "in-progress": "In Progress",
-  done: "Done",
-};
+import { TASK_PRIORITY_META, TASK_STATUS_LABELS } from "@/lib/task-options";
+import { SurfaceCard } from "@/components/ui/surface-card";
 
 const STATUS_META: Record<
   Task["status"],
@@ -26,12 +22,6 @@ const STATUS_META: Record<
     bg: "rgba(62,207,184,0.08)",
     border: "rgba(62,207,184,0.2)",
   },
-};
-
-const PRIORITY_META: Record<Task["priority"], { color: string; bg: string }> = {
-  high: { color: "#ff6e9c", bg: "rgba(255,110,156,0.12)" },
-  medium: { color: "#6e73ff", bg: "rgba(110,115,255,0.12)" },
-  low: { color: "#3ecfb8", bg: "rgba(62,207,184,0.12)" },
 };
 
 function EmptyCol({ status }: { status: Task["status"] }) {
@@ -61,7 +51,7 @@ function EmptyCol({ status }: { status: Task["status"] }) {
         )}
       </div>
       <p className="text-xs font-medium mb-1" style={{ color: "var(--fg-2)" }}>
-        Nothing in {STATUS_LABELS[status]} yet
+        Nothing in {TASK_STATUS_LABELS[status]} yet
       </p>
       <p className="text-xs max-w-[160px]" style={{ color: "var(--fg-3)" }}>
         {msgs[status]}
@@ -91,24 +81,21 @@ function TaskCard({
   onDragOver: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent, beforeId: string) => void;
 }) {
-  const pm = PRIORITY_META[task.priority];
+  const pm = TASK_PRIORITY_META[task.priority];
   const isDone = task.status === "done";
 
   return (
-    <article
+    <SurfaceCard
+      as="article"
       draggable={!dragging}
       onDragStart={(e) => onDragStart(e, task._id)}
       onDragEnd={onDragEnd}
       onDragOver={onDragOver}
       onDrop={(e) => onDrop(e, task._id)}
       className={clsx(
-        "rounded-2xl p-4 transition-all duration-200 cursor-grab active:cursor-grabbing group",
-        isDragging && "opacity-40 scale-95",
+        "group cursor-grab p-4 transition-all duration-200 active:cursor-grabbing",
+        isDragging && "scale-95 opacity-40",
       )}
-      style={{
-        border: "1px solid var(--border)",
-        background: "var(--bg-card)",
-      }}
     >
       {/* priority dot + title */}
       <div className="flex items-start gap-2.5 mb-3">
@@ -204,7 +191,7 @@ function TaskCard({
       >
         ⠿ drag to move
       </p>
-    </article>
+    </SurfaceCard>
   );
 }
 
@@ -276,7 +263,7 @@ export function TaskBoard({
                   className="text-sm font-semibold"
                   style={{ color: "var(--fg)" }}
                 >
-                  {STATUS_LABELS[status]}
+                  {TASK_STATUS_LABELS[status]}
                 </h3>
               </div>
               <span

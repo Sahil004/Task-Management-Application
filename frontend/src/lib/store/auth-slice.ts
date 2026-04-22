@@ -27,14 +27,6 @@ const initialState: AuthState = {
   hydrated: false,
 };
 
-type ApiError = {
-  response?: {
-    data?: {
-      error?: string;
-    };
-  };
-};
-
 export const registerUser = createAsyncThunk<
   AuthResponse,
   { name: string; email: string; password: string },
