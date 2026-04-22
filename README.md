@@ -81,7 +81,7 @@ frontend/
 
 ## Environment Variables
 
-Copy [backend/.env.example](/c:/Sahil/Task-Management-Application/backend/.env.example) to `backend/.env` and fill in the values.
+Copy `backend/.env.example` to `backend/.env` and fill in the values.
 
 | Variable | Required | Description |
 | --- | --- | --- |
@@ -89,7 +89,7 @@ Copy [backend/.env.example](/c:/Sahil/Task-Management-Application/backend/.env.e
 | `MONGO_URI` | Yes | MongoDB connection string. |
 | `JWT_SECRET` | Yes | Secret used to sign JWT tokens. |
 | `JWT_EXPIRES_IN` | No | JWT lifetime, for example `7d`. |
-| `CLIENT_URL` | No | Allowed frontend origin for CORS. |
+| `CLIENT_URL` | No | Allowed frontend origin for CORS (default: `http://localhost:3000`). |
 | `NODE_ENV` | No | Runtime mode such as `development` or `test`. |
 
 ## Local Development Setup
@@ -155,6 +155,58 @@ npm run dev
 
 The frontend will start at `http://localhost:3000`.
 
+## Requirement Coverage Checklist
+
+### Functional Requirements
+
+- `Authentication`:
+  - User registration with validation: implemented (`POST /api/auth/register`) and client-side form checks.
+  - User login with JWT: implemented (`POST /api/auth/login`) with token storage in frontend state/storage.
+  - Protected routes: implemented in backend middleware and frontend route guards.
+  - Logout clearing token: implemented (`POST /api/auth/logout`) and client token/user cleanup.
+- `Task CRUD`:
+  - Create with title, description, priority, due date, status: implemented.
+  - View user-specific tasks with status/priority filters and sorting: implemented.
+  - Update task fields: implemented (`PUT /api/tasks/:id`).
+  - Delete with confirmation prompt: implemented in UI via confirmation dialog.
+- `Dashboard`:
+  - Total tasks, grouped status counts, overdue count: implemented (`GET /api/tasks/dashboard`).
+  - Priority visual indicators: implemented via color-coded badges and task markers.
+
+### Technical Requirements
+
+- `Frontend`:
+  - React framework: implemented using Next.js (App Router).
+  - State management: Redux Toolkit.
+  - Responsive/mobile-friendly layout: implemented on dashboard and task board screens.
+  - Client-side validation: implemented in auth/task forms.
+  - Reusable component architecture: common components under `frontend/src/components` and shared task option constants.
+- `Backend`:
+  - Node.js + Express API: implemented.
+  - RESTful routes with status codes: implemented.
+  - Input validation + centralized error handling: implemented with `express-validator` and error middleware.
+  - JWT auth middleware: implemented.
+  - Password hashing: implemented with `bcryptjs`.
+- `Database`:
+  - MongoDB + Mongoose: implemented.
+  - Defined schemas with proper types/enums/relations: implemented for `User` and `Task`.
+  - Indexed query fields: implemented on task model for user-scoped filtering/sorting.
+
+### Bonus Features Included
+
+- Drag-and-drop Kanban board with persistence (`PATCH /api/tasks/reorder`)
+- Backend unit/integration-style route tests (Jest + Supertest)
+- API documentation via Swagger/OpenAPI
+- Dark mode toggle support in frontend theme state
+
+## Deliverables Status
+
+- `GitHub repository`: source code is structured as backend + frontend with docs and scripts.
+- `README.md`: includes overview, stack, setup, env details, endpoint documentation, and test/run instructions.
+- `.env.example`: included for backend and frontend with non-secret placeholder values.
+- `Seed script`: available at `backend/src/scripts/seed.ts` via `npm run seed`.
+- `ARCHITECTURE.md`: available with folder design, schema design, auth flow, and trade-offs.
+
 ## Seed Data
 
 Run the seed script:
@@ -199,6 +251,45 @@ Lint the frontend:
 ```bash
 cd frontend
 npm run lint
+```
+
+## CI Pipeline
+
+GitHub Actions workflow is available at `.github/workflows/ci.yml`.
+
+It runs:
+
+- Backend: install, test, build
+- Frontend: install, lint, build
+
+The workflow triggers on every push and pull request.
+
+## Docker Compose (One-Command Startup)
+
+Docker setup is available in `docker/`:
+
+- `docker/docker-compose.yml`
+- `docker/backend.Dockerfile`
+- `docker/frontend.Dockerfile`
+
+Run everything (MongoDB + backend + frontend):
+
+```bash
+cd docker
+docker compose up --build
+```
+
+App URLs:
+
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost:5000`
+- Swagger: `http://localhost:5000/api-docs`
+
+Stop containers:
+
+```bash
+cd docker
+docker compose down
 ```
 
 ## API Endpoints
@@ -256,6 +347,6 @@ The backend API is documented through Swagger for review and manual testing, and
 
 ## Additional Documentation
 
-- Architecture notes: [ARCHITECTURE.md](/c:/Sahil/Task-Management-Application/ARCHITECTURE.md)
-- Backend env template: [backend/.env.example](/c:/Sahil/Task-Management-Application/backend/.env.example)
-- Frontend env template: [frontend/.env.example](/c:/Sahil/Task-Management-Application/frontend/.env.example)
+- Architecture notes: `ARCHITECTURE.md`
+- Backend env template: `backend/.env.example`
+- Frontend env template: `frontend/.env.example`

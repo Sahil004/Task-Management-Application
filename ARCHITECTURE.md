@@ -2,20 +2,16 @@
 
 ## Overview
 
-The application is designed as a separated full-stack system with the backend exposed as a REST API and the frontend consuming that API over HTTP. This separation keeps the backend independently testable, simplifies deployment, and makes the API reusable for web or mobile clients.
+The application is designed as a separated full-stack system with the backend exposed as a REST API and the frontend consuming that API over HTTP. This separation keeps the API independently testable, simplifies deployment, and makes the service reusable for multiple clients.
 
-The backend is currently the most complete part of the system and is organized around standard Express layers:
+The architecture uses two independent apps in one repository:
 
-- routes
-- controllers
-- middleware
-- models
-- config
-- scripts
+- `backend`: Node.js + Express + MongoDB API
+- `frontend`: Next.js + Redux UI client
 
 ## Folder Structure Rationale
 
-The backend uses a feature-supporting layered structure under `backend/src`:
+### Backend structure (`backend/src`)
 
 - `app.ts`
   Creates and configures the Express application with middleware, routes, Swagger docs, and error handling.
@@ -39,6 +35,19 @@ The backend uses a feature-supporting layered structure under `backend/src`:
   Jest setup and HTTP-level route tests.
 
 This keeps the code easy to navigate and avoids mixing transport concerns with persistence logic.
+
+### Frontend structure (`frontend/src`)
+
+- `app/`
+  Next.js App Router entries for auth pages and dashboard pages.
+- `components/`
+  Reusable UI and feature components (`TaskBoard`, `TaskForm`, `Navbar`, `ConfirmDialog`, auth forms, shared UI fields).
+- `lib/store/`
+  Redux slices for auth, tasks, and theme.
+- `lib/`
+  API client, app types, token persistence helpers, and shared task option metadata/constants.
+
+This separation keeps pages thin, pushes reusable UI into components, and centralizes stateful business actions in Redux async thunks.
 
 ## Database Schema Design
 
@@ -98,6 +107,14 @@ Authentication uses JWT bearer tokens:
 5. Controllers rely on `req.user` to scope queries to the authenticated user.
 
 The logout route is intentionally lightweight because the current backend uses stateless JWT authentication. The server responds successfully, and the client completes logout by deleting the stored token. This keeps the design simple and aligns with the assignment requirement to clear the session/token.
+
+## Frontend Data Flow
+
+1. Auth forms dispatch Redux thunks (`registerUser`, `loginUser`) that call backend auth endpoints.
+2. On success, token/user are persisted via storage helpers and Redux state is hydrated on app load.
+3. Protected pages use `AuthRedirect` and route replacement to guard dashboard/task pages.
+4. Task pages dispatch async thunks (`fetchTasks`, `createTask`, `updateTask`, `deleteTask`, `reorderTasks`) that call the REST API with bearer token headers.
+5. Dashboard and board views consume normalized task state and render visual status/priority indicators.
 
 ## API Design Decisions
 
@@ -165,4 +182,4 @@ If needed later, opt-in integration tests can be added against a real MongoDB in
 - Add refresh tokens or token revocation if session invalidation is required
 - Add Docker and CI workflows
 - Generate frontend API types from the OpenAPI schema
-- Add frontend screenshots and deployment details once the UI is complete
+- Add frontend screenshots and deployment details for final submission package
