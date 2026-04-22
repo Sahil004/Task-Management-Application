@@ -27,23 +27,51 @@ const initialState: AuthState = {
   hydrated: false,
 };
 
-export const registerUser = createAsyncThunk(
-  "auth/register",
-  async (payload: { name: string; email: string; password: string }) =>
-    api<AuthResponse>("/auth/register", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }),
-);
+type ApiError = {
+  response?: {
+    data?: {
+      error?: string;
+    };
+  };
+};
 
-export const loginUser = createAsyncThunk(
-  "auth/login",
-  async (payload: { email: string; password: string }) =>
-    api<AuthResponse>("/auth/login", {
+export const registerUser = createAsyncThunk<
+  AuthResponse,
+  { name: string; email: string; password: string },
+  { rejectValue: string }
+>("auth/register", async (payload, { rejectWithValue }) => {
+  try {
+    return await api<AuthResponse>("/auth/register", {
       method: "POST",
       body: JSON.stringify(payload),
-    }),
-);
+    });
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      return rejectWithValue(err.message);
+    }
+
+    return rejectWithValue("Registration failed");
+  }
+});
+
+export const loginUser = createAsyncThunk<
+  AuthResponse,
+  { email: string; password: string },
+  { rejectValue: string }
+>("auth/login", async (payload, { rejectWithValue }) => {
+  try {
+    return await api<AuthResponse>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      return rejectWithValue(err.message);
+    }
+
+    return rejectWithValue("Login failed");
+  }
+});
 
 export const logoutUser = createAsyncThunk("auth/logout", async () => {
   await api<{ message: string }>("/auth/logout", {
@@ -78,7 +106,7 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || "Registration failed";
+        state.error = action.payload || "Registration failed";
       })
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
@@ -94,7 +122,7 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || "Login failed";
+        state.error = action.payload || "Login failed";
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.token = null;

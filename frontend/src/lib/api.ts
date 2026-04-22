@@ -6,6 +6,7 @@ interface ApiOptions extends RequestInit {
   auth?: boolean;
 }
 
+
 export async function api<T>(path: string, options: ApiOptions = {}): Promise<T> {
   const headers = new Headers(options.headers);
   headers.set('Content-Type', 'application/json');

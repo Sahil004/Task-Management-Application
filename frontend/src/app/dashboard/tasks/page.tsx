@@ -13,6 +13,7 @@ import { useToast } from "@/components/toast-provider";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { restoreAuth, selectAuth } from "@/lib/store/auth-slice";
 import {
+  clearTasks,
   createTask,
   deleteTask,
   fetchDashboard,
@@ -46,6 +47,7 @@ export default function TasksPage() {
     if (!auth.hydrated) return;
     if (!auth.token) {
       router.replace("/login");
+      dispatch(clearTasks());
       return;
     }
     void dispatch(fetchDashboard());

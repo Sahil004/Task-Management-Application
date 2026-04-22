@@ -1,8 +1,13 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-import { api } from '@/lib/api';
-import { DashboardData, Task, TaskFormValues, TaskReorderInput } from '@/lib/types';
-import { RootState } from '@/lib/store';
+import { api } from "@/lib/api";
+import {
+  DashboardData,
+  Task,
+  TaskFormValues,
+  TaskReorderInput,
+} from "@/lib/types";
+import { RootState } from "@/lib/store";
 
 interface TasksState {
   items: Task[];
@@ -21,8 +26,13 @@ const initialState: TasksState = {
 };
 
 export const fetchTasks = createAsyncThunk(
-  'tasks/fetchTasks',
-  async (params: { status?: string; priority?: string; sortBy?: string; order?: string }) => {
+  "tasks/fetchTasks",
+  async (params: {
+    status?: string;
+    priority?: string;
+    sortBy?: string;
+    order?: string;
+  }) => {
     const search = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value) {
@@ -30,30 +40,23 @@ export const fetchTasks = createAsyncThunk(
       }
     });
 
-    return api<{ count: number; tasks: Task[] }>(`/tasks?${search.toString()}`, { auth: true });
+    return api<{ count: number; tasks: Task[] }>(
+      `/tasks?${search.toString()}`,
+      { auth: true },
+    );
   },
 );
 
-export const fetchDashboard = createAsyncThunk('tasks/fetchDashboard', async () =>
-  api<DashboardData>('/tasks/dashboard', { auth: true }),
+export const fetchDashboard = createAsyncThunk(
+  "tasks/fetchDashboard",
+  async () => api<DashboardData>("/tasks/dashboard", { auth: true }),
 );
 
-export const createTask = createAsyncThunk('tasks/createTask', async (values: TaskFormValues) =>
-  api<{ task: Task }>('/tasks', {
-    method: 'POST',
-    auth: true,
-    body: JSON.stringify({
-      ...values,
-      dueDate: values.dueDate || null,
-    }),
-  }),
-);
-
-export const updateTask = createAsyncThunk(
-  'tasks/updateTask',
-  async ({ id, values }: { id: string; values: TaskFormValues }) =>
-    api<{ task: Task }>(`/tasks/${id}`, {
-      method: 'PUT',
+export const createTask = createAsyncThunk(
+  "tasks/createTask",
+  async (values: TaskFormValues) =>
+    api<{ task: Task }>("/tasks", {
+      method: "POST",
       auth: true,
       body: JSON.stringify({
         ...values,
@@ -62,19 +65,35 @@ export const updateTask = createAsyncThunk(
     }),
 );
 
-export const deleteTask = createAsyncThunk('tasks/deleteTask', async (id: string) => {
-  await api<{ message: string }>(`/tasks/${id}`, {
-    method: 'DELETE',
-    auth: true,
-  });
-  return id;
-});
+export const updateTask = createAsyncThunk(
+  "tasks/updateTask",
+  async ({ id, values }: { id: string; values: TaskFormValues }) =>
+    api<{ task: Task }>(`/tasks/${id}`, {
+      method: "PUT",
+      auth: true,
+      body: JSON.stringify({
+        ...values,
+        dueDate: values.dueDate || null,
+      }),
+    }),
+);
+
+export const deleteTask = createAsyncThunk(
+  "tasks/deleteTask",
+  async (id: string) => {
+    await api<{ message: string }>(`/tasks/${id}`, {
+      method: "DELETE",
+      auth: true,
+    });
+    return id;
+  },
+);
 
 export const reorderTasks = createAsyncThunk(
-  'tasks/reorderTasks',
+  "tasks/reorderTasks",
   async (payload: { tasks: TaskReorderInput[]; nextItems: Task[] }) => {
-    await api<{ message: string }>('/tasks/reorder', {
-      method: 'PATCH',
+    await api<{ message: string }>("/tasks/reorder", {
+      method: "PATCH",
       auth: true,
       body: JSON.stringify({ tasks: payload.tasks }),
     });
@@ -84,9 +103,17 @@ export const reorderTasks = createAsyncThunk(
 );
 
 const tasksSlice = createSlice({
-  name: 'tasks',
+  name: "tasks",
   initialState,
-  reducers: {},
+  reducers: {
+    clearTasks: (state) => {
+      state.items = [];
+      state.dashboard = null;
+      state.loading = false;
+      state.submitting = false;
+      state.error = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchTasks.pending, (state) => {
@@ -99,7 +126,7 @@ const tasksSlice = createSlice({
       })
       .addCase(fetchTasks.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Unable to fetch tasks';
+        state.error = action.error.message || "Unable to fetch tasks";
       })
       .addCase(fetchDashboard.fulfilled, (state, action) => {
         state.dashboard = action.payload;
@@ -114,7 +141,7 @@ const tasksSlice = createSlice({
       })
       .addCase(createTask.rejected, (state, action) => {
         state.submitting = false;
-        state.error = action.error.message || 'Unable to create task';
+        state.error = action.error.message || "Unable to create task";
       })
       .addCase(updateTask.pending, (state) => {
         state.submitting = true;
@@ -128,7 +155,7 @@ const tasksSlice = createSlice({
       })
       .addCase(updateTask.rejected, (state, action) => {
         state.submitting = false;
-        state.error = action.error.message || 'Unable to update task';
+        state.error = action.error.message || "Unable to update task";
       })
       .addCase(deleteTask.fulfilled, (state, action) => {
         state.items = state.items.filter((task) => task._id !== action.payload);
@@ -143,10 +170,11 @@ const tasksSlice = createSlice({
       })
       .addCase(reorderTasks.rejected, (state, action) => {
         state.submitting = false;
-        state.error = action.error.message || 'Unable to reorder tasks';
+        state.error = action.error.message || "Unable to reorder tasks";
       });
   },
 });
 
+export const { clearTasks } = tasksSlice.actions;
 export const selectTasks = (state: RootState) => state.tasks;
 export default tasksSlice.reducer;
