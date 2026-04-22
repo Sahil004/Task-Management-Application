@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { TaskFormValues } from "@/lib/types";
+import { Circle, CircleAlert, Loader } from "lucide-react";
 
 const DEFAULT: TaskFormValues = {
   title: "",
@@ -200,19 +201,7 @@ export function TaskForm({
             color: "#ff6e9c",
           }}
         >
-          <svg
-            width="13"
-            height="13"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            className="mt-0.5 shrink-0"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-          </svg>
+          <CircleAlert size={14} />
           {formError || error}
         </div>
       )}
@@ -244,17 +233,7 @@ export function TaskForm({
         >
           {loading ? (
             <span className="flex items-center justify-center gap-2">
-              <svg
-                className="animate-spin"
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-              </svg>
+              <Loader size={14} className="animate-spin" />
               Saving...
             </span>
           ) : mode === "create" ? (

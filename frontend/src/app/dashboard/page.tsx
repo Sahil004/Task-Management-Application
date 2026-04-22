@@ -10,6 +10,16 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { restoreAuth, selectAuth } from "@/lib/store/auth-slice";
 import { fetchDashboard, selectTasks } from "@/lib/store/tasks-slice";
+import {
+  CheckCircle,
+  CircleAlert,
+  CircleCheckBig,
+  CircleDashed,
+  Clock,
+  Loader,
+  Plus,
+  SquareCheckBig,
+} from "lucide-react";
 
 /* ── stat card ── */
 function StatCard({
@@ -127,18 +137,7 @@ export default function DashboardPage() {
                 boxShadow: "0 0 20px rgba(110,115,255,0.3)",
               }}
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              >
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
+              <Plus size={14} />
               New Task
             </Link>
           </div>
@@ -163,20 +162,7 @@ export default function DashboardPage() {
               color="#6e73ff"
               bg="rgba(110,115,255,0.1)"
               loading={loading}
-              icon={
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                >
-                  <path d="M9 11l3 3L22 4" />
-                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-                </svg>
-              }
+              icon={<SquareCheckBig size={14} />}
             />
             <StatCard
               label="To Do"
@@ -184,21 +170,7 @@ export default function DashboardPage() {
               color="var(--fg-2)"
               bg="var(--bg)"
               loading={loading}
-              icon={
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="12" />
-                  <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
-              }
+              icon={<CircleAlert size={14} />}
             />
             <StatCard
               label="In Progress"
@@ -206,20 +178,7 @@ export default function DashboardPage() {
               color="#6e73ff"
               bg="rgba(110,115,255,0.1)"
               loading={loading}
-              icon={
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                >
-                  <polyline points="23 4 23 10 17 10" />
-                  <path d="M20.49 15a9 9 0 1 1-.08-4" />
-                </svg>
-              }
+              icon={<Loader size={14} />}
             />
             <StatCard
               label="Done"
@@ -227,20 +186,7 @@ export default function DashboardPage() {
               color="#3ecfb8"
               bg="rgba(62,207,184,0.1)"
               loading={loading}
-              icon={
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                >
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                  <polyline points="22 4 12 14.01 9 11.01" />
-                </svg>
-              }
+              icon={<CircleCheckBig size={14} />}
             />
             <StatCard
               label="Overdue"
@@ -248,20 +194,7 @@ export default function DashboardPage() {
               color="#ff6e9c"
               bg="rgba(255,110,156,0.1)"
               loading={loading}
-              icon={
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <polyline points="12 6 12 12 16 14" />
-                </svg>
-              }
+              icon={<Clock size={14} />}
             />
           </div>
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { ArrowRight, CircleCheckBig } from "lucide-react";
 
 export default function HomePage() {
   return (
@@ -139,18 +140,7 @@ export default function HomePage() {
                 }}
               >
                 Start Managing Tasks
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
+                <ArrowRight size={14} />
               </Link>
               <Link
                 href="/login"
@@ -307,16 +297,7 @@ export default function HomePage() {
                       }}
                     >
                       {t.status === "Done" && (
-                        <svg width="8" height="8" viewBox="0 0 10 10">
-                          <path
-                            d="M2 5l2.5 2.5 3.5-4"
-                            stroke="white"
-                            strokeWidth="1.5"
-                            fill="none"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
+                        <CircleCheckBig size={10} color={t.sc} />
                       )}
                     </div>
                     <span

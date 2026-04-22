@@ -3,6 +3,7 @@
 import clsx from "clsx";
 import { useState } from "react";
 import { Task } from "@/lib/types";
+import { CircleAlert, CircleCheckBig, Loader } from "lucide-react";
 
 const STATUS_LABELS: Record<Task["status"], string> = {
   todo: "To Do",
@@ -52,44 +53,11 @@ function EmptyCol({ status }: { status: Task["status"] }) {
         }}
       >
         {status === "todo" ? (
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-          </svg>
+          <CircleAlert size={14} />
         ) : status === "in-progress" ? (
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-          >
-            <polyline points="23 4 23 10 17 10" />
-            <path d="M20.49 15a9 9 0 1 1-.08-4" />
-          </svg>
+          <Loader size={14} />
         ) : (
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-          >
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-            <polyline points="22 4 12 14.01 9 11.01" />
-          </svg>
+          <CircleCheckBig size={14} />
         )}
       </div>
       <p className="text-xs font-medium mb-1" style={{ color: "var(--fg-2)" }}>

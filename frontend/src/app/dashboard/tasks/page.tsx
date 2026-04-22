@@ -23,6 +23,7 @@ import {
   updateTask,
 } from "@/lib/store/tasks-slice";
 import { Task, TaskFormValues } from "@/lib/types";
+import { Plus, X } from "lucide-react";
 
 export default function TasksPage() {
   const router = useRouter();
@@ -232,18 +233,7 @@ export default function TasksPage() {
                 boxShadow: "0 0 20px rgba(110,115,255,0.3)",
               }}
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              >
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
+              <Plus size={14} />
               New Task
             </button>
           </div>
@@ -338,7 +328,7 @@ export default function TasksPage() {
           {/* Task form slide-in panel */}
           {showForm && (
             <div
-              className="fixed inset-0 z-40 flex items-center justify-end"
+              className="fixed inset-0 z-40 flex items-center justify-end pt-16"
               style={{
                 background: "rgba(0,0,0,0.4)",
                 backdropFilter: "blur(4px)",
@@ -387,18 +377,7 @@ export default function TasksPage() {
                       color: "var(--fg-2)",
                     }}
                   >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    >
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
+                    <X size={14} />
                   </button>
                 </div>
                 <div
