@@ -24,10 +24,7 @@ import {
   selectTasks,
   updateTask,
 } from "@/lib/store/tasks-slice";
-import {
-  TASK_PRIORITY_OPTIONS,
-  TASK_STATUS_OPTIONS,
-} from "@/lib/task-options";
+import { TASK_PRIORITY_OPTIONS, TASK_STATUS_OPTIONS } from "@/lib/task-options";
 import { Task, TaskFormValues } from "@/lib/types";
 import { SelectOption } from "@/components/ui/custom-select";
 import { Plus, X } from "lucide-react";
@@ -222,7 +219,7 @@ export default function TasksPage() {
       ) : (
         <DashboardShell user={auth.user}>
           {/* Page header */}
-          <div className="flex items-start justify-between mb-6 animate-fade-up">
+          <div className="flex flex-wrap items-start justify-between gap-3 mb-5 sm:mb-6 animate-fade-up">
             <div>
               <p
                 className="text-xs font-semibold uppercase tracking-widest mb-1"
@@ -230,7 +227,10 @@ export default function TasksPage() {
               >
                 Task Board
               </p>
-              <h1 className="text-2xl font-bold" style={{ color: "var(--fg)" }}>
+              <h1
+                className="text-xl sm:text-2xl font-bold"
+                style={{ color: "var(--fg)" }}
+              >
                 Manage Tasks
               </h1>
               <p className="text-sm mt-1" style={{ color: "var(--fg-2)" }}>
@@ -238,6 +238,7 @@ export default function TasksPage() {
               </p>
             </div>
             <GradientCtaButton
+              className="text-xs sm:text-sm px-3 py-2 sm:px-4"
               onClick={() => {
                 setEditingTaskId(null);
                 setShowForm(true);
@@ -250,7 +251,7 @@ export default function TasksPage() {
 
           {/* accent bar */}
           <div
-            className="h-0.5 rounded-full mb-6"
+            className="h-0.5 rounded-full mb-5 sm:mb-6"
             style={{
               background:
                 "linear-gradient(to right, #6e73ff, #3ecfb8, #ff6e9c)",
@@ -259,7 +260,7 @@ export default function TasksPage() {
 
           {/* Filters */}
           <div
-            className="flex flex-wrap items-center gap-3 mb-6 animate-fade-up"
+            className="flex overflow-x-auto items-center gap-2 sm:gap-3 mb-5 sm:mb-6 animate-fade-up"
             style={{ animationDelay: "0.05s" }}
           >
             <TaskFilterSelect
@@ -294,7 +295,7 @@ export default function TasksPage() {
                   setSortBy("createdAt");
                   setOrder("desc");
                 }}
-                className="px-3 py-2 rounded-xl text-xs font-medium transition-all"
+                className="px-3 py-1.5 sm:py-2 rounded-xl text-xs font-medium transition-all"
                 style={{
                   border: "1px solid rgba(255,110,156,0.3)",
                   color: "#ff6e9c",
@@ -307,7 +308,10 @@ export default function TasksPage() {
           </div>
 
           {/* Board */}
-          <div className="animate-fade-up" style={{ animationDelay: "0.1s" }}>
+          <div
+            className="animate-fade-up overflow-x-auto pb-2"
+            style={{ animationDelay: "0.1s" }}
+          >
             <TaskBoard
               tasks={taskState.items}
               loading={taskState.loading}
@@ -324,8 +328,9 @@ export default function TasksPage() {
           {/* Task form slide-in panel */}
           {showForm && (
             <div
-              className="fixed inset-0 z-40 flex items-center justify-end pt-16"
+              className="fixed inset-0 z-50 flex justify-end"
               style={{
+                paddingTop: "64px",
                 background: "rgba(0,0,0,0.4)",
                 backdropFilter: "blur(4px)",
               }}
@@ -341,7 +346,7 @@ export default function TasksPage() {
                 style={{
                   background: "var(--bg)",
                   borderLeft: "1px solid var(--border-2)",
-                  padding: "32px 24px",
+                  padding: "24px 16px",
                 }}
               >
                 <div className="flex items-center justify-between mb-6">
@@ -366,7 +371,7 @@ export default function TasksPage() {
                       setShowForm(false);
                       setEditingTaskId(null);
                     }}
-                    className="w-9 h-9 rounded-xl flex items-center justify-center transition-all"
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all"
                     style={{
                       background: "var(--bg-card)",
                       border: "1px solid var(--border-2)",
@@ -377,7 +382,7 @@ export default function TasksPage() {
                   </button>
                 </div>
                 <div
-                  className="h-0.5 rounded-full mb-6"
+                  className="h-0.5 rounded-full mb-5 sm:mb-6"
                   style={{
                     background:
                       "linear-gradient(to right, #6e73ff, #3ecfb8, #ff6e9c)",

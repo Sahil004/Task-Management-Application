@@ -16,10 +16,7 @@ import { SurfaceCard } from "@/components/ui/surface-card";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { restoreAuth, selectAuth } from "@/lib/store/auth-slice";
 import { fetchDashboard, selectTasks } from "@/lib/store/tasks-slice";
-import {
-  TASK_PRIORITY_META,
-  TASK_STATUS_LABELS,
-} from "@/lib/task-options";
+import { TASK_PRIORITY_META, TASK_STATUS_LABELS } from "@/lib/task-options";
 import {
   CircleAlert,
   CircleCheckBig,
@@ -67,7 +64,7 @@ export default function DashboardPage() {
       ) : (
         <DashboardShell user={auth.user}>
           {/* Page header */}
-          <div className="flex items-start justify-between mb-8 animate-fade-up">
+          <div className="flex flex-wrap items-start justify-between gap-3 mb-6 sm:mb-8 animate-fade-up">
             <div>
               <p
                 className="text-xs font-semibold uppercase tracking-widest mb-1"
@@ -75,7 +72,10 @@ export default function DashboardPage() {
               >
                 Overview
               </p>
-              <h1 className="text-2xl font-bold" style={{ color: "var(--fg)" }}>
+              <h1
+                className="text-xl sm:text-2xl font-bold"
+                style={{ color: "var(--fg)" }}
+              >
                 Welcome back, {firstName} 👋
               </h1>
               <p className="text-sm mt-1" style={{ color: "var(--fg-2)" }}>
@@ -89,7 +89,7 @@ export default function DashboardPage() {
             </div>
             <Link
               href="/dashboard/tasks"
-              className={gradientCtaClassName}
+              className={`${gradientCtaClassName} text-xs sm:text-sm px-3 py-2 sm:px-4`}
               style={gradientCtaStyle}
             >
               <Plus size={14} />
@@ -108,7 +108,7 @@ export default function DashboardPage() {
 
           {/* Stat cards */}
           <div
-            className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6 animate-fade-up"
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6 animate-fade-up"
             style={{ animationDelay: "0.05s" }}
           >
             <DashboardStatCard
@@ -155,12 +155,12 @@ export default function DashboardPage() {
 
           {/* Progress + Workload row */}
           <div
-            className="grid lg:grid-cols-2 gap-4 mb-6 animate-fade-up"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 animate-fade-up"
             style={{ animationDelay: "0.1s" }}
           >
             {/* Progress card */}
-            <SurfaceCard className="p-5">
-              <div className="flex items-center justify-between mb-4">
+            <SurfaceCard className="p-4 sm:p-5">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                 <div>
                   <p
                     className="text-xs font-medium mb-0.5"
@@ -199,7 +199,7 @@ export default function DashboardPage() {
                   }}
                 />
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center gap-3">
                 {(
                   [
                     ["To Do", todo, "#6e73ff"],
@@ -225,7 +225,7 @@ export default function DashboardPage() {
 
             {/* Workload pulse */}
             <div
-              className="rounded-2xl p-5"
+              className="rounded-2xl p-4 sm:p-5"
               style={{
                 background: "#0f0f18",
                 border: "1px solid rgba(110,115,255,0.2)",
@@ -275,7 +275,7 @@ export default function DashboardPage() {
 
           {/* Recent tasks */}
           <div className="animate-fade-up" style={{ animationDelay: "0.15s" }}>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
               <h2
                 className="text-sm font-semibold"
                 style={{ color: "var(--fg)" }}
@@ -296,7 +296,7 @@ export default function DashboardPage() {
                 Array.from({ length: 4 }).map((_, i) => (
                   <div
                     key={i}
-                    className="h-16 rounded-2xl animate-pulse"
+                    className="h-14 sm:h-16 rounded-2xl animate-pulse"
                     style={{
                       background: "var(--bg-card)",
                       border: "1px solid var(--border)",
@@ -305,7 +305,7 @@ export default function DashboardPage() {
                 ))
               ) : (dashboard?.recentTasks ?? []).length === 0 ? (
                 <div
-                  className="py-12 text-center rounded-2xl"
+                  className="py-10 sm:py-12 px-4 text-center rounded-2xl"
                   style={{ border: "1px dashed var(--border-2)" }}
                 >
                   <p
@@ -338,7 +338,7 @@ export default function DashboardPage() {
                   return (
                     <SurfaceCard
                       key={task._id}
-                      className="flex items-center gap-3 p-4 transition-all duration-200 hover:scale-[1.005] animate-fade-up"
+                      className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 transition-all duration-200 hover:scale-[1.005] animate-fade-up"
                       style={{
                         animationDelay: `${0.15 + i * 0.04}s`,
                       }}
@@ -349,7 +349,7 @@ export default function DashboardPage() {
                       />
                       <div className="flex-1 min-w-0">
                         <p
-                          className="text-sm font-medium truncate"
+                          className="text-xs sm:text-sm font-medium truncate"
                           style={{
                             color:
                               task.status === "done"
@@ -363,7 +363,7 @@ export default function DashboardPage() {
                         </p>
                       </div>
                       <span
-                        className="text-[10px] font-semibold px-2.5 py-1 rounded-full shrink-0"
+                        className="text-[9px] sm:text-[10px] font-semibold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full shrink-0"
                         style={{ color: sc, background: `${sc}18` }}
                       >
                         {TASK_STATUS_LABELS[task.status]}

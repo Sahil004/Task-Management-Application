@@ -37,7 +37,7 @@ export function Navbar({
         backdropFilter: "blur(12px)",
       }}
     >
-      <div className="mx-auto w-full max-w-7xl px-6 flex items-center gap-6">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 flex items-center gap-3 sm:gap-6">
         {/* Logo */}
         <Logo />
 
@@ -48,14 +48,14 @@ export function Navbar({
         />
 
         {/* Nav links */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
           {NAV.map((item) => {
             const active = pathname === item.href;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className="relative flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200"
+                className="relative flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 whitespace-nowrap"
                 style={{
                   color: active ? "#6e73ff" : "var(--fg-2)",
                   background: active ? "rgba(110,115,255,0.08)" : "transparent",
@@ -64,7 +64,7 @@ export function Navbar({
                 <span style={{ color: active ? "#6e73ff" : "var(--fg-3)" }}>
                   {item.icon}
                 </span>
-                {item.label}
+                <span className="hidden md:inline">{item.label}</span>{" "}
                 {active && (
                   <span
                     className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full"
@@ -77,7 +77,7 @@ export function Navbar({
         </div>
 
         {/* Right side */}
-        <div className="ml-auto flex items-center gap-3">
+        <div className="ml-auto flex items-center gap-2 sm:gap-3">
           {/* User pill */}
           {userName && (
             <div
@@ -104,7 +104,7 @@ export function Navbar({
 
           <button
             onClick={onLogout}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-200"
+            className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-200"
             style={{
               border: "1px solid var(--border-2)",
               color: "var(--fg-2)",
@@ -112,7 +112,7 @@ export function Navbar({
             }}
           >
             <LogOut size={14} />
-            Logout
+            <span className="hidden sm:inline">Logout</span>
           </button>
         </div>
       </div>

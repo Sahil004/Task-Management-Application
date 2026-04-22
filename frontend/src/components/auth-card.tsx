@@ -21,7 +21,7 @@ export function AuthCard({
 }) {
   return (
     <main
-      className="relative flex min-h-screen items-center justify-center px-6 py-10 overflow-hidden"
+      className="relative flex min-h-screen items-center justify-center px-4 sm:px-6 py-6 sm:py-10 overflow-hidden"
       style={{ background: "var(--bg)" }}
     >
       {/* bg glows */}
@@ -44,7 +44,7 @@ export function AuthCard({
 
       <div className="relative z-10 w-full max-w-5xl animate-fade-up">
         <div
-          className="grid overflow-hidden rounded-2xl lg:grid-cols-[0.95fr_1.05fr]"
+          className="grid overflow-hidden rounded-2xl lg:grid-cols-[0.95fr_1.05fr] w-full"
           style={{
             border: "1px solid var(--border-2)",
             background: "var(--bg-card)",
@@ -128,17 +128,28 @@ export function AuthCard({
 
           {/* right panel - form */}
           <section
-            className="px-6 py-8 sm:px-10 sm:py-10"
+            className="px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10"
             style={{ background: "var(--bg-card)" }}
           >
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between gap-3 mb-6 sm:mb-8 flex-wrap">
+              {" "}
               <div className="lg:hidden">
                 <Logo href="/" size={32} />
               </div>
+              <div className="md:hidden">
+                <ThemeToggle />
+              </div>
               <div className="hidden lg:block" />
               <div className="flex items-center gap-3">
-                <ThemeToggle />
-                <p className="text-sm" style={{ color: "var(--fg-2)" }}>
+                <div className="hidden md:block">
+                  <ThemeToggle />
+                </div>
+
+                <p
+                  className="text-xs sm:text-sm leading-5 sm:leading-normal"
+                  style={{ color: "var(--fg-2)" }}
+                >
+                  {" "}
                   {alternateLabel}{" "}
                   <Link
                     href={alternateHref}
@@ -150,7 +161,7 @@ export function AuthCard({
                 </p>
               </div>
             </div>
-            {children}
+            <div className="w-full max-w-md mx-auto">{children}</div>
           </section>
         </div>
       </div>

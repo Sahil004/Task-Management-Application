@@ -52,12 +52,18 @@ export function RegisterForm() {
   };
 
   return (
-    <form className="space-y-5" onSubmit={handleSubmit}>
+    <form className="space-y-4 sm:space-y-5" onSubmit={handleSubmit}>
       <div>
-        <h2 className="text-3xl font-bold mb-2" style={{ color: "var(--fg)" }}>
+        <h2
+          className="text-2xl sm:text-3xl font-bold mb-2"
+          style={{ color: "var(--fg)" }}
+        >
           Create account
         </h2>
-        <p className="text-sm leading-6" style={{ color: "var(--fg-2)" }}>
+        <p
+          className="text-sm sm:text-base leading-6"
+          style={{ color: "var(--fg-2)" }}
+        >
           Start managing your tasks with a focused, clean workflow.
         </p>
       </div>

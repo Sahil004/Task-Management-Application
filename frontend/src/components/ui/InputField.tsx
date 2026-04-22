@@ -23,7 +23,7 @@ export default function InputField({
 
       <input
         {...props}
-        className="w-full px-4 py-3 rounded-2xl text-sm outline-none transition-all duration-200"
+        className="w-full px-3 py-2.5 sm:py-3 rounded-2xl text-sm outline-none transition-all duration-200"
         style={{
           border: error ? "1px solid #ff6e9c" : "1px solid var(--border-2)",
           background: "var(--bg)",

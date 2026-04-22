@@ -32,7 +32,7 @@ function EmptyCol({ status }: { status: Task["status"] }) {
   };
   return (
     <div
-      className="flex flex-col items-center justify-center py-12 text-center rounded-2xl"
+      className="flex flex-col items-center justify-center py-10 sm:py-12 text-center rounded-2xl px-4"
       style={{ border: "1px dashed var(--border-2)" }}
     >
       <div
@@ -93,7 +93,7 @@ function TaskCard({
       onDragOver={onDragOver}
       onDrop={(e) => onDrop(e, task._id)}
       className={clsx(
-        "group cursor-grab p-4 transition-all duration-200 active:cursor-grabbing",
+        "group cursor-grab p-3 sm:p-4 transition-all duration-200 active:cursor-grabbing",
         isDragging && "scale-95 opacity-40",
       )}
     >
@@ -104,7 +104,7 @@ function TaskCard({
           style={{ background: pm.color, boxShadow: `0 0 6px ${pm.color}80` }}
         />
         <p
-          className="text-sm font-medium leading-snug flex-1"
+          className="text-xs sm:text-sm font-medium leading-snug flex-1 break-words"
           style={{
             color: isDone ? "var(--fg-3)" : "var(--fg)",
             textDecoration: isDone ? "line-through" : "none",
@@ -117,7 +117,7 @@ function TaskCard({
       {/* description */}
       {task.description && (
         <p
-          className="text-xs leading-relaxed mb-3 pl-4"
+          className="text-[11px] sm:text-xs leading-relaxed mb-3 pl-4 break-words"
           style={{ color: "var(--fg-3)" }}
         >
           {task.description}
@@ -125,7 +125,7 @@ function TaskCard({
       )}
 
       {/* meta row */}
-      <div className="flex items-center justify-between gap-2 pl-4 mb-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 pl-4 mb-3">
         <span
           className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
           style={{
@@ -157,11 +157,11 @@ function TaskCard({
       </div>
 
       {/* actions */}
-      <div className="flex gap-2 pl-4">
+      <div className="flex gap-2 pl-4 flex-wrap">
         <button
           disabled={dragging}
           onClick={() => onEdit(task._id)}
-          className="flex-1 py-1.5 rounded-xl text-xs font-medium transition-all disabled:opacity-50"
+          className="flex-1 py-1.5 rounded-xl text-[11px] sm:text-xs font-medium transition-all disabled:opacity-50"
           style={{
             border: "1px solid var(--border-2)",
             color: "var(--fg-2)",
@@ -186,7 +186,7 @@ function TaskCard({
 
       {/* drag hint */}
       <p
-        className="text-[10px] mt-2.5 pl-4 opacity-0 group-hover:opacity-100 transition-opacity"
+        className="text-[10px] mt-2.5 pl-4 opacity-60 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
         style={{ color: "var(--fg-3)" }}
       >
         ⠿ drag to move
@@ -224,7 +224,7 @@ export function TaskBoard({
   const [activeColumn, setActiveColumn] = useState<Task["status"] | null>(null);
 
   return (
-    <div className="grid gap-4 xl:grid-cols-3">
+    <div className=" flex gap-3 sm:gap-4 overflow-x-auto pb-2 lg:grid lg:grid-cols-3 items-start">
       {(Object.keys(grouped) as Task["status"][]).map((status) => {
         const meta = STATUS_META[status];
         const isActive = activeColumn === status;
@@ -246,7 +246,7 @@ export function TaskBoard({
             onDragLeave={() => {
               if (activeColumn === status) setActiveColumn(null);
             }}
-            className="rounded-2xl p-4 flex flex-col gap-3 transition-all duration-200 min-h-[200px]"
+            className="rounded-2xl p-3 sm:p-4 flex flex-col gap-3 transition-all duration-200 min-h-[200px] max-h-screen overflow-y-auto min-w-[280px] md:w-auto shrink-0"
             style={{
               border: `1px solid ${isActive ? meta.color + "60" : "var(--border)"}`,
               background: isActive ? meta.bg : "var(--bg-card)",
@@ -279,7 +279,7 @@ export function TaskBoard({
               Array.from({ length: 2 }).map((_, i) => (
                 <div
                   key={i}
-                  className="h-28 rounded-2xl animate-pulse"
+                  className="h-24 sm:h-28 rounded-2xl animate-pulse"
                   style={{ background: "var(--bg)" }}
                 />
               ))

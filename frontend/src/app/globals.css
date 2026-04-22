@@ -55,9 +55,10 @@ body {
 }
 
 /* scrollbar */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 2px;
 }
 
 ::-webkit-scrollbar-track {
@@ -65,8 +66,8 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-2);
-  border-radius: 3px;
+  background: rgba(110, 115, 255, 0.4);
+  border-radius: 9999px;
 }
 
 /* selection */
