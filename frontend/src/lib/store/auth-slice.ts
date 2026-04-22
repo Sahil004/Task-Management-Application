@@ -1,10 +1,10 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-import { api } from '@/lib/api';
-import { tokenStorage } from '@/lib/token-storage';
-import { User } from '@/lib/types';
+import { api } from "@/lib/api";
+import { tokenStorage } from "@/lib/token-storage";
+import { User } from "@/lib/types";
 
-import { RootState } from '@/lib/store';
+import { RootState } from "@/lib/store";
 
 interface AuthState {
   token: string | null;
@@ -28,32 +28,32 @@ const initialState: AuthState = {
 };
 
 export const registerUser = createAsyncThunk(
-  'auth/register',
+  "auth/register",
   async (payload: { name: string; email: string; password: string }) =>
-    api<AuthResponse>('/auth/register', {
-      method: 'POST',
+    api<AuthResponse>("/auth/register", {
+      method: "POST",
       body: JSON.stringify(payload),
     }),
 );
 
 export const loginUser = createAsyncThunk(
-  'auth/login',
+  "auth/login",
   async (payload: { email: string; password: string }) =>
-    api<AuthResponse>('/auth/login', {
-      method: 'POST',
+    api<AuthResponse>("/auth/login", {
+      method: "POST",
       body: JSON.stringify(payload),
     }),
 );
 
-export const logoutUser = createAsyncThunk('auth/logout', async () => {
-  await api<{ message: string }>('/auth/logout', {
-    method: 'POST',
+export const logoutUser = createAsyncThunk("auth/logout", async () => {
+  await api<{ message: string }>("/auth/logout", {
+    method: "POST",
     auth: true,
   });
 });
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     restoreAuth: (state) => {
@@ -78,7 +78,7 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Registration failed';
+        state.error = action.error.message || "Registration failed";
       })
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
@@ -94,7 +94,7 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Login failed';
+        state.error = action.error.message || "Login failed";
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.token = null;

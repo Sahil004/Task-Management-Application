@@ -1,283 +1,515 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-import { AuthRedirect } from '@/components/auth-redirect';
-import { ConfirmDialog } from '@/components/confirm-dialog';
-import { DashboardSkeleton } from '@/components/dashboard-skeleton';
-import { DashboardShell } from '@/components/dashboard-shell';
-import { TaskBoard } from '@/components/task-board';
-import { TaskForm } from '@/components/task-form';
-import { useToast } from '@/components/toast-provider';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { logoutUser, restoreAuth, selectAuth } from '@/lib/store/auth-slice';
-import {
-  createTask,
-  deleteTask,
-  fetchDashboard,
-  fetchTasks,
-  reorderTasks,
-  selectTasks,
-  updateTask,
-} from '@/lib/store/tasks-slice';
-import { Task, TaskFormValues } from '@/lib/types';
+import { AuthRedirect } from "@/components/auth-redirect";
+import { DashboardSkeleton } from "@/components/dashboard-skeleton";
+import { DashboardShell } from "@/components/dashboard-shell";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks";
+import { restoreAuth, selectAuth } from "@/lib/store/auth-slice";
+import { fetchDashboard, selectTasks } from "@/lib/store/tasks-slice";
+
+/* ── stat card ── */
+function StatCard({
+  label,
+  value,
+  color,
+  bg,
+  icon,
+  loading,
+}: {
+  label: string;
+  value: number;
+  color: string;
+  bg: string;
+  icon: React.ReactNode;
+  loading: boolean;
+}) {
+  return (
+    <div
+      className="rounded-2xl p-5 flex flex-col gap-3 transition-all duration-200 hover:scale-[1.02] cursor-default"
+      style={{
+        border: "1px solid var(--border)",
+        background: "var(--bg-card)",
+      }}
+    >
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium" style={{ color: "var(--fg-3)" }}>
+          {label}
+        </span>
+        <div
+          className="w-8 h-8 rounded-xl flex items-center justify-center"
+          style={{ background: bg, color }}
+        >
+          {icon}
+        </div>
+      </div>
+      <p className="text-3xl font-bold" style={{ color }}>
+        {loading ? (
+          <span
+            className="inline-block w-8 h-8 rounded-xl animate-pulse"
+            style={{ background: bg }}
+          />
+        ) : (
+          value
+        )}
+      </p>
+      <div className="h-0.5 rounded-full" style={{ background: bg }} />
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const auth = useAppSelector(selectAuth);
-  const taskState = useAppSelector(selectTasks);
-  const { showToast } = useToast();
-
-  const [statusFilter, setStatusFilter] = useState('');
-  const [priorityFilter, setPriorityFilter] = useState('');
-  const [sortBy, setSortBy] = useState<'createdAt' | 'dueDate'>('createdAt');
-  const [order, setOrder] = useState<'asc' | 'desc'>('desc');
-  const [mobilePanel, setMobilePanel] = useState<'compose' | 'board'>('board');
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
-  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
-
-  const buildReorderedTasks = (
-    currentTasks: Task[],
-    draggedTaskId: string,
-    nextStatus: Task['status'],
-    beforeTaskId?: string,
-  ) => {
-    const draggedTask = currentTasks.find((task) => task._id === draggedTaskId);
-    if (!draggedTask) {
-      return null;
-    }
-
-    const remainingTasks = currentTasks.filter((task) => task._id !== draggedTaskId);
-    const destinationTasks = remainingTasks
-      .filter((task) => task.status === nextStatus)
-      .sort((a, b) => a.position - b.position);
-
-    const insertIndex = beforeTaskId
-      ? destinationTasks.findIndex((task) => task._id === beforeTaskId)
-      : destinationTasks.length;
-
-    const movedTask: Task = {
-      ...draggedTask,
-      status: nextStatus,
-    };
-
-    if (insertIndex >= 0) {
-      destinationTasks.splice(insertIndex, 0, movedTask);
-    } else {
-      destinationTasks.push(movedTask);
-    }
-
-    const byStatus: Record<Task['status'], Task[]> = {
-      todo: [],
-      'in-progress': [],
-      done: [],
-    };
-
-    remainingTasks
-      .filter((task) => task.status !== nextStatus)
-      .forEach((task) => {
-        byStatus[task.status].push(task);
-      });
-
-    byStatus[nextStatus] = destinationTasks;
-
-    const normalized = (Object.keys(byStatus) as Task['status'][]).flatMap((status) =>
-      byStatus[status]
-        .sort((a, b) => a.position - b.position)
-        .map((task, index) => ({
-          ...task,
-          status,
-          position: index,
-        })),
-    );
-
-    return normalized;
-  };
+  const { dashboard, loading } = useAppSelector(selectTasks);
 
   useEffect(() => {
     dispatch(restoreAuth());
   }, [dispatch]);
 
   useEffect(() => {
-    if (!auth.hydrated) {
-      return;
-    }
-
+    if (!auth.hydrated) return;
     if (!auth.token) {
-      router.replace('/login');
+      router.replace("/login");
       return;
     }
-
     void dispatch(fetchDashboard());
   }, [auth.hydrated, auth.token, dispatch, router]);
 
-  useEffect(() => {
-    if (!auth.token) {
-      return;
-    }
+  const stats = dashboard?.stats;
+  const total = stats?.total ?? 0;
+  const todo = stats?.todo ?? 0;
+  const inProg = stats?.inProgress ?? 0;
+  const done = stats?.done ?? 0;
+  const overdue = stats?.overdue ?? 0;
+  const highPri = stats?.highPriority ?? 0;
+  const doneRatio = total > 0 ? Math.round((done / total) * 100) : 0;
+  const backlog = total > 0 ? Math.round(((todo + inProg) / total) * 100) : 0;
 
-    void dispatch(fetchTasks({ status: statusFilter, priority: priorityFilter, sortBy, order }));
-  }, [auth.token, dispatch, order, priorityFilter, sortBy, statusFilter]);
-
-  const editingTask = useMemo(
-    () => taskState.items.find((task) => task._id === editingTaskId) ?? null,
-    [editingTaskId, taskState.items],
-  );
-
-  const handleSubmit = async (values: TaskFormValues) => {
-    if (editingTaskId) {
-      await dispatch(updateTask({ id: editingTaskId, values })).unwrap();
-      await Promise.all([
-        dispatch(fetchTasks({ status: statusFilter, priority: priorityFilter, sortBy, order })),
-        dispatch(fetchDashboard()),
-      ]);
-      showToast({
-        tone: 'success',
-        title: 'Task updated',
-        description: 'Your changes were saved to the board.',
-      });
-      setMobilePanel('board');
-      setEditingTaskId(null);
-      return;
-    }
-
-    await dispatch(createTask(values)).unwrap();
-    await Promise.all([
-      dispatch(fetchTasks({ status: statusFilter, priority: priorityFilter, sortBy, order })),
-      dispatch(fetchDashboard()),
-    ]);
-    showToast({
-      tone: 'success',
-      title: 'Task created',
-      description: 'A new task was added to your workflow.',
-    });
-    setMobilePanel('board');
-  };
-
-  const handleDelete = async () => {
-    if (!deleteTargetId) {
-      return;
-    }
-
-    await dispatch(deleteTask(deleteTargetId)).unwrap();
-    await Promise.all([
-      dispatch(fetchTasks({ status: statusFilter, priority: priorityFilter, sortBy, order })),
-      dispatch(fetchDashboard()),
-    ]);
-    showToast({
-      tone: 'info',
-      title: 'Task deleted',
-      description: 'The task was removed from your workspace.',
-    });
-    setDeleteTargetId(null);
-  };
-
-  const handleReorder = async (taskId: string, nextStatus: Task['status'], beforeTaskId?: string) => {
-    const nextItems = buildReorderedTasks(taskState.items, taskId, nextStatus, beforeTaskId);
-
-    if (!nextItems) {
-      return;
-    }
-
-    await dispatch(
-      reorderTasks({
-        tasks: nextItems.map((task) => ({
-          id: task._id,
-          status: task.status,
-          position: task.position,
-        })),
-        nextItems,
-      }),
-    ).unwrap();
-
-    await dispatch(fetchDashboard());
-    showToast({
-      tone: 'info',
-      title: 'Board updated',
-      description: 'Task positions were saved across your Kanban columns.',
-    });
-  };
-
-  const handleLogout = async () => {
-    await dispatch(logoutUser());
-    showToast({
-      tone: 'info',
-      title: 'Signed out',
-      description: 'Your session has been cleared on this device.',
-    });
-    router.replace('/login');
-  };
+  const firstName = auth.user?.name?.split(" ")[0] ?? "there";
 
   return (
     <AuthRedirect mode="protected">
       {!auth.hydrated || !auth.token ? (
         <DashboardSkeleton />
       ) : (
-        <DashboardShell
-          user={auth.user}
-          dashboard={taskState.dashboard}
-          loading={taskState.loading}
-          mobilePanel={mobilePanel}
-          filters={{ statusFilter, priorityFilter, sortBy, order }}
-          onFilterChange={{ setStatusFilter, setPriorityFilter, setSortBy, setOrder, setMobilePanel }}
-          onLogout={handleLogout}
-        >
-          <div className="grid gap-6 lg:grid-cols-[0.38fr_0.62fr]">
-            <div className={mobilePanel === 'board' ? 'hidden lg:block' : 'block'}>
-              <TaskForm
-                key={editingTaskId ?? 'new-task'}
-                initialValues={
-                  editingTask
-                    ? {
-                        title: editingTask.title,
-                        description: editingTask.description,
-                        priority: editingTask.priority,
-                        status: editingTask.status,
-                        dueDate: editingTask.dueDate ? editingTask.dueDate.slice(0, 10) : '',
-                      }
-                    : undefined
-                }
-                loading={taskState.submitting}
-                mode={editingTask ? 'edit' : 'create'}
-                error={taskState.error}
-                onCancel={
-                  editingTask
-                    ? () => {
-                        setEditingTaskId(null);
-                        setMobilePanel('board');
-                      }
-                    : undefined
-                }
-                onSubmit={handleSubmit}
-              />
+        <DashboardShell user={auth.user}>
+          {/* Page header */}
+          <div className="flex items-start justify-between mb-8 animate-fade-up">
+            <div>
+              <p
+                className="text-xs font-semibold uppercase tracking-widest mb-1"
+                style={{ color: "#6e73ff" }}
+              >
+                Overview
+              </p>
+              <h1 className="text-2xl font-bold" style={{ color: "var(--fg)" }}>
+                Welcome back, {firstName} 👋
+              </h1>
+              <p className="text-sm mt-1" style={{ color: "var(--fg-2)" }}>
+                {new Date().toLocaleDateString("en-US", {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </p>
+            </div>
+            <Link
+              href="/dashboard/tasks"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-semibold text-white transition-all hover:opacity-90 hover:scale-[1.02]"
+              style={{
+                background: "linear-gradient(135deg, #6e73ff, #3ecfb8)",
+                boxShadow: "0 0 20px rgba(110,115,255,0.3)",
+              }}
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              New Task
+            </Link>
+          </div>
+
+          {/* accent bar */}
+          <div
+            className="h-0.5 rounded-full mb-8"
+            style={{
+              background:
+                "linear-gradient(to right, #6e73ff, #3ecfb8, #ff6e9c)",
+            }}
+          />
+
+          {/* Stat cards */}
+          <div
+            className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6 animate-fade-up"
+            style={{ animationDelay: "0.05s" }}
+          >
+            <StatCard
+              label="Total"
+              value={total}
+              color="#6e73ff"
+              bg="rgba(110,115,255,0.1)"
+              loading={loading}
+              icon={
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                >
+                  <path d="M9 11l3 3L22 4" />
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                </svg>
+              }
+            />
+            <StatCard
+              label="To Do"
+              value={todo}
+              color="var(--fg-2)"
+              bg="var(--bg)"
+              loading={loading}
+              icon={
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+              }
+            />
+            <StatCard
+              label="In Progress"
+              value={inProg}
+              color="#6e73ff"
+              bg="rgba(110,115,255,0.1)"
+              loading={loading}
+              icon={
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                >
+                  <polyline points="23 4 23 10 17 10" />
+                  <path d="M20.49 15a9 9 0 1 1-.08-4" />
+                </svg>
+              }
+            />
+            <StatCard
+              label="Done"
+              value={done}
+              color="#3ecfb8"
+              bg="rgba(62,207,184,0.1)"
+              loading={loading}
+              icon={
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                >
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+              }
+            />
+            <StatCard
+              label="Overdue"
+              value={overdue}
+              color="#ff6e9c"
+              bg="rgba(255,110,156,0.1)"
+              loading={loading}
+              icon={
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+              }
+            />
+          </div>
+
+          {/* Progress + Workload row */}
+          <div
+            className="grid lg:grid-cols-2 gap-4 mb-6 animate-fade-up"
+            style={{ animationDelay: "0.1s" }}
+          >
+            {/* Progress card */}
+            <div
+              className="rounded-2xl p-5"
+              style={{
+                border: "1px solid var(--border)",
+                background: "var(--bg-card)",
+              }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p
+                    className="text-xs font-medium mb-0.5"
+                    style={{ color: "var(--fg-3)" }}
+                  >
+                    Overall completion
+                  </p>
+                  <p
+                    className="text-2xl font-bold"
+                    style={{ color: "#3ecfb8" }}
+                  >
+                    {doneRatio}%
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs" style={{ color: "var(--fg-3)" }}>
+                    Remaining
+                  </p>
+                  <p
+                    className="text-sm font-semibold"
+                    style={{ color: "var(--fg)" }}
+                  >
+                    {todo + inProg} tasks
+                  </p>
+                </div>
+              </div>
+              <div
+                className="h-2.5 rounded-full overflow-hidden mb-3"
+                style={{ background: "var(--bg)" }}
+              >
+                <div
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{
+                    width: `${doneRatio}%`,
+                    background: "linear-gradient(to right, #6e73ff, #3ecfb8)",
+                  }}
+                />
+              </div>
+              <div className="flex items-center gap-4">
+                {(
+                  [
+                    ["To Do", todo, "#6e73ff"],
+                    ["In Progress", inProg, "#3ecfb8"],
+                    ["Done", done, "#ff6e9c"],
+                  ] as [string, number, string][]
+                ).map(([l, v, c]) => (
+                  <div key={l} className="flex items-center gap-1.5">
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ background: c }}
+                    />
+                    <span
+                      className="text-[11px]"
+                      style={{ color: "var(--fg-3)" }}
+                    >
+                      {l}: {v}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className={mobilePanel === 'compose' ? 'hidden lg:block' : 'block'}>
-              <TaskBoard
-                tasks={taskState.items}
-                loading={taskState.loading}
-                dragging={taskState.submitting}
-                onEdit={(taskId) => {
-                  setEditingTaskId(taskId);
-                  setMobilePanel('compose');
-                }}
-                onDelete={(taskId) => setDeleteTargetId(taskId)}
-                onReorder={handleReorder}
-              />
+            {/* Workload pulse */}
+            <div
+              className="rounded-2xl p-5"
+              style={{
+                background: "#0f0f18",
+                border: "1px solid rgba(110,115,255,0.2)",
+              }}
+            >
+              <p
+                className="text-xs font-semibold uppercase tracking-widest mb-2"
+                style={{ color: "#6e73ff" }}
+              >
+                Workload pulse
+              </p>
+              <h2
+                className="text-xl font-bold mb-4"
+                style={{ color: "#f4f4f6" }}
+              >
+                {loading ? "..." : `${backlog}% of tasks still need attention`}
+              </h2>
+              <div
+                className="h-2.5 overflow-hidden rounded-full mb-3"
+                style={{ background: "rgba(255,255,255,0.08)" }}
+              >
+                <div
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{
+                    width: `${backlog}%`,
+                    background: "linear-gradient(to right, #6e73ff, #ff6e9c)",
+                  }}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <span
+                  className="text-xs"
+                  style={{ color: "rgba(244,244,246,0.5)" }}
+                >
+                  {highPri} high-priority open
+                </span>
+                <Link
+                  href="/dashboard/tasks"
+                  className="text-xs font-semibold transition-opacity hover:opacity-80"
+                  style={{ color: "#6e73ff" }}
+                >
+                  View board →
+                </Link>
+              </div>
             </div>
           </div>
 
-          <ConfirmDialog
-            open={Boolean(deleteTargetId)}
-            title="Delete task?"
-            description="This removes the task from your list and dashboard summaries. This action cannot be undone."
-            confirmLabel="Delete Task"
-            cancelLabel="Keep Task"
-            onCancel={() => setDeleteTargetId(null)}
-            onConfirm={handleDelete}
-          />
+          {/* Recent tasks */}
+          <div className="animate-fade-up" style={{ animationDelay: "0.15s" }}>
+            <div className="flex items-center justify-between mb-4">
+              <h2
+                className="text-sm font-semibold"
+                style={{ color: "var(--fg)" }}
+              >
+                Recent tasks
+              </h2>
+              <Link
+                href="/dashboard/tasks"
+                className="text-xs font-medium transition-opacity hover:opacity-80"
+                style={{ color: "#6e73ff" }}
+              >
+                View all →
+              </Link>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              {loading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-16 rounded-2xl animate-pulse"
+                    style={{
+                      background: "var(--bg-card)",
+                      border: "1px solid var(--border)",
+                    }}
+                  />
+                ))
+              ) : (dashboard?.recentTasks ?? []).length === 0 ? (
+                <div
+                  className="py-12 text-center rounded-2xl"
+                  style={{ border: "1px dashed var(--border-2)" }}
+                >
+                  <p
+                    className="text-sm font-medium mb-1"
+                    style={{ color: "var(--fg-2)" }}
+                  >
+                    No tasks yet
+                  </p>
+                  <p className="text-xs mb-4" style={{ color: "var(--fg-3)" }}>
+                    Create your first task to get started
+                  </p>
+                  <Link
+                    href="/dashboard/tasks"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl text-xs font-semibold text-white"
+                    style={{
+                      background: "linear-gradient(135deg, #6e73ff, #3ecfb8)",
+                    }}
+                  >
+                    Add task
+                  </Link>
+                </div>
+              ) : (
+                (dashboard?.recentTasks ?? []).slice(0, 5).map((task, i) => {
+                  const PRIORITY_COLOR: Record<string, string> = {
+                    high: "#ff6e9c",
+                    medium: "#6e73ff",
+                    low: "#3ecfb8",
+                  };
+                  const STATUS_COLOR: Record<string, string> = {
+                    todo: "var(--fg-3)",
+                    "in-progress": "#6e73ff",
+                    done: "#3ecfb8",
+                  };
+                  const pc = PRIORITY_COLOR[task.priority] ?? "#6e73ff";
+                  const sc = STATUS_COLOR[task.status] ?? "var(--fg-3)";
+                  return (
+                    <div
+                      key={task._id}
+                      className="flex items-center gap-3 p-4 rounded-2xl transition-all duration-200 hover:scale-[1.005] animate-fade-up"
+                      style={{
+                        border: "1px solid var(--border)",
+                        background: "var(--bg-card)",
+                        animationDelay: `${0.15 + i * 0.04}s`,
+                      }}
+                    >
+                      <div
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ background: pc, boxShadow: `0 0 6px ${pc}80` }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p
+                          className="text-sm font-medium truncate"
+                          style={{
+                            color:
+                              task.status === "done"
+                                ? "var(--fg-3)"
+                                : "var(--fg)",
+                            textDecoration:
+                              task.status === "done" ? "line-through" : "none",
+                          }}
+                        >
+                          {task.title}
+                        </p>
+                      </div>
+                      <span
+                        className="text-[10px] font-semibold px-2.5 py-1 rounded-full shrink-0"
+                        style={{ color: sc, background: `${sc}18` }}
+                      >
+                        {task.status.replace("-", " ")}
+                      </span>
+                      <span
+                        className="text-[10px] font-semibold px-2.5 py-1 rounded-full shrink-0"
+                        style={{
+                          color: pc,
+                          background: `${pc}14`,
+                          border: `0.5px solid ${pc}40`,
+                        }}
+                      >
+                        {task.priority}
+                      </span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
         </DashboardShell>
       )}
     </AuthRedirect>

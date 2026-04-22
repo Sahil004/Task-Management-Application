@@ -1,4 +1,6 @@
-import Link from 'next/link';
+import Link from "next/link";
+import { Logo } from "@/components/logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function AuthCard({
   eyebrow,
@@ -18,31 +20,139 @@ export function AuthCard({
   children: React.ReactNode;
 }) {
   return (
-    <main className="flex min-h-screen items-center justify-center px-6 py-10">
-      <div className="grid w-full max-w-5xl overflow-hidden rounded-[2rem] border border-white/60 bg-white/75 shadow-panel backdrop-blur lg:grid-cols-[0.95fr_1.05fr]">
-        <section className="relative hidden overflow-hidden bg-ink px-10 py-12 text-white lg:block">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(244,201,93,0.28),_transparent_30%),radial-gradient(circle_at_bottom_left,_rgba(217,119,87,0.45),_transparent_38%)]" />
-          <div className="relative">
-            <p className="text-sm uppercase tracking-[0.3em] text-butter">{eyebrow}</p>
-            <h1 className="mt-6 text-4xl font-semibold leading-tight">{title}</h1>
-            <p className="mt-6 max-w-md text-base leading-7 text-white/75">{subtitle}</p>
-          </div>
-        </section>
+    <main
+      className="relative flex min-h-screen items-center justify-center px-6 py-10 overflow-hidden"
+      style={{ background: "var(--bg)" }}
+    >
+      {/* bg glows */}
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <div
+          className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(110,115,255,0.1) 0%, transparent 70%)",
+          }}
+        />
+        <div
+          className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(62,207,184,0.08) 0%, transparent 70%)",
+          }}
+        />
+      </div>
 
-        <section className="px-6 py-8 sm:px-10 sm:py-10">
-          <div className="mb-8 flex items-center justify-between">
-            <Link href="/" className="text-sm font-semibold uppercase tracking-[0.2em] text-clay">
-              TaskFlow
-            </Link>
-            <p className="text-sm text-ink/60">
-              {alternateLabel}{' '}
-              <Link href={alternateHref} className="font-semibold text-dusk">
-                {alternateText}
-              </Link>
-            </p>
-          </div>
-          {children}
-        </section>
+      <div className="relative z-10 w-full max-w-5xl animate-fade-up">
+        <div
+          className="grid overflow-hidden rounded-2xl lg:grid-cols-[0.95fr_1.05fr]"
+          style={{
+            border: "1px solid var(--border-2)",
+            background: "var(--bg-card)",
+            boxShadow: "0 24px 60px rgba(0,0,0,0.12)",
+          }}
+        >
+          {/* left panel */}
+          <section
+            className="relative hidden overflow-hidden lg:block"
+            style={{
+              background: "linear-gradient(135deg, #0f0f18 0%, #13131f 100%)",
+            }}
+          >
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "radial-gradient(circle at top right, rgba(110,115,255,0.25) 0%, transparent 50%), radial-gradient(circle at bottom left, rgba(62,207,184,0.2) 0%, transparent 50%)",
+              }}
+            />
+
+            {/* accent bar top */}
+            <div
+              className="absolute top-0 left-0 right-0 h-0.5"
+              style={{
+                background:
+                  "linear-gradient(to right, #6e73ff, #3ecfb8, #ff6e9c)",
+              }}
+            />
+
+            <div className="relative p-10 py-12 flex flex-col h-full">
+              <Logo href="/" />
+
+              <div className="flex-1 flex flex-col justify-center mt-10">
+                <span
+                  className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-6 w-fit"
+                  style={{
+                    background: "rgba(110,115,255,0.15)",
+                    color: "#6e73ff",
+                    border: "0.5px solid rgba(110,115,255,0.3)",
+                  }}
+                >
+                  {eyebrow}
+                </span>
+                <h1
+                  className="text-3xl font-bold leading-tight mb-4"
+                  style={{ color: "#f4f4f6" }}
+                >
+                  {title}
+                </h1>
+                <p
+                  className="text-sm leading-7"
+                  style={{ color: "rgba(244,244,246,0.6)" }}
+                >
+                  {subtitle}
+                </p>
+              </div>
+
+              {/* feature list */}
+              <div className="mt-auto pt-8 flex flex-col gap-3">
+                {[
+                  { icon: "⚡", text: "JWT authentication & protected routes" },
+                  { icon: "✦", text: "Full task CRUD with priority & status" },
+                  { icon: "◈", text: "Dashboard with real-time statistics" },
+                ].map((f, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <span className="text-sm" style={{ color: "#6e73ff" }}>
+                      {f.icon}
+                    </span>
+                    <span
+                      className="text-xs"
+                      style={{ color: "rgba(244,244,246,0.5)" }}
+                    >
+                      {f.text}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* right panel - form */}
+          <section
+            className="px-6 py-8 sm:px-10 sm:py-10"
+            style={{ background: "var(--bg-card)" }}
+          >
+            <div className="flex items-center justify-between mb-8">
+              <div className="lg:hidden">
+                <Logo href="/" size={32} />
+              </div>
+              <div className="hidden lg:block" />
+              <div className="flex items-center gap-3">
+                <ThemeToggle />
+                <p className="text-sm" style={{ color: "var(--fg-2)" }}>
+                  {alternateLabel}{" "}
+                  <Link
+                    href={alternateHref}
+                    className="font-semibold"
+                    style={{ color: "#6e73ff" }}
+                  >
+                    {alternateText}
+                  </Link>
+                </p>
+              </div>
+            </div>
+            {children}
+          </section>
+        </div>
       </div>
     </main>
   );

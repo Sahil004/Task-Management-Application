@@ -1,14 +1,17 @@
-'use client';
+"use client";
 
-import { Provider } from 'react-redux';
-
-import { ToastProvider } from '@/components/toast-provider';
-import { store } from '@/lib/store';
+import { Provider } from "react-redux";
+import { store } from "@/lib/store";
+import { ToastProvider } from "@/components/toast-provider";
+import { ThemeProvider } from "@/hook/theme-provider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <Provider store={store}>
-      <ToastProvider>{children}</ToastProvider>
+      {/* ThemeProvider must be inside Provider so it can dispatch to the store */}
+      <ThemeProvider>
+        <ToastProvider>{children}</ToastProvider>
+      </ThemeProvider>
     </Provider>
   );
 }

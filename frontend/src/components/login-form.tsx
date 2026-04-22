@@ -1,91 +1,169 @@
-'use client';
+"use client";
 
-import { FormEvent, useState } from 'react';
-import { useRouter } from 'next/navigation';
-
-import { useToast } from '@/components/toast-provider';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { loginUser, selectAuth } from '@/lib/store/auth-slice';
+import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAppDispatch } from "@/lib/hooks";
+import { loginUser } from "@/lib/store/auth-slice";
 
 export function LoginForm() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const auth = useAppSelector(selectAuth);
-  const { showToast } = useToast();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [formError, setFormError] = useState('');
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setFormError('');
-
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError("");
     if (!email || !password) {
-      setFormError('Email and password are required.');
+      setError("Email and password are required.");
       return;
     }
-
+    setLoading(true);
     try {
       await dispatch(loginUser({ email, password })).unwrap();
-      showToast({
-        tone: 'success',
-        title: 'Welcome back',
-        description: 'You are signed in and ready to manage your tasks.',
-      });
-      router.replace('/dashboard');
-    } catch (error) {
-      setFormError(error instanceof Error ? error.message : 'Unable to login.');
-      showToast({
-        tone: 'error',
-        title: 'Login failed',
-        description: error instanceof Error ? error.message : 'Unable to login.',
-      });
+      router.replace("/dashboard");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to sign in.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
       <div>
-        <h2 className="text-3xl font-semibold text-ink">Login</h2>
-        <p className="mt-2 text-sm leading-6 text-ink/65">Your task dashboard is one step away.</p>
+        <h2 className="text-3xl font-bold mb-2" style={{ color: "var(--fg)" }}>
+          Welcome back
+        </h2>
+        <p className="text-sm leading-6" style={{ color: "var(--fg-2)" }}>
+          Your task dashboard is one step away.
+        </p>
       </div>
 
-      <label className="block">
-        <span className="mb-2 block text-sm font-medium text-ink">Email</span>
-        <input
-          className="w-full rounded-2xl border border-ink/10 bg-sand/60 px-4 py-3 outline-none transition focus:border-dusk"
-          type="email"
-          placeholder="you@example.com"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-        />
-      </label>
+      <InputField
+        label="Email"
+        type="email"
+        placeholder="you@example.com"
+        value={email}
+        onChange={setEmail}
+      />
+      <InputField
+        label="Password"
+        type="password"
+        placeholder="Enter your password"
+        value={password}
+        onChange={setPassword}
+      />
 
-      <label className="block">
-        <span className="mb-2 block text-sm font-medium text-ink">Password</span>
-        <input
-          className="w-full rounded-2xl border border-ink/10 bg-sand/60 px-4 py-3 outline-none transition focus:border-dusk"
-          type="password"
-          placeholder="Enter your password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-        />
-      </label>
-
-      {(formError || auth.error) && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {formError || auth.error}
+      {error && (
+        <div
+          className="rounded-2xl px-4 py-3 text-sm flex items-start gap-2"
+          style={{
+            border: "1px solid rgba(255,110,156,0.3)",
+            background: "rgba(255,110,156,0.08)",
+            color: "#ff6e9c",
+          }}
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            className="mt-0.5 shrink-0"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          {error}
         </div>
       )}
 
       <button
         type="submit"
-        disabled={auth.loading}
-        className="w-full rounded-2xl bg-ink px-4 py-3 text-sm font-semibold text-white transition hover:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-60"
+        disabled={loading}
+        className="w-full py-3 rounded-2xl text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 hover:scale-[1.01] disabled:opacity-60 disabled:cursor-not-allowed"
+        style={{
+          background: "#18181b",
+          boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
+        }}
       >
-        {auth.loading ? 'Signing in...' : 'Sign In'}
+        {loading ? (
+          <span className="flex items-center justify-center gap-2">
+            <svg
+              className="animate-spin"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+            </svg>
+            Signing in...
+          </span>
+        ) : (
+          "Sign In"
+        )}
       </button>
+
+      <div
+        className="h-0.5 rounded-full"
+        style={{
+          background: "linear-gradient(to right, #6e73ff, #3ecfb8, #ff6e9c)",
+        }}
+      />
     </form>
+  );
+}
+
+function InputField({
+  label,
+  type,
+  placeholder,
+  value,
+  onChange,
+}: {
+  label: string;
+  type: string;
+  placeholder: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <label className="block">
+      <span
+        className="block text-sm font-medium mb-2"
+        style={{ color: "var(--fg)" }}
+      >
+        {label}
+      </span>
+      <input
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-4 py-3 rounded-2xl text-sm outline-none transition-all duration-200"
+        style={{
+          border: "1px solid var(--border-2)",
+          background: "var(--bg)",
+          color: "var(--fg)",
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.borderColor = "#6e73ff";
+          e.currentTarget.style.boxShadow = "0 0 0 3px rgba(110,115,255,0.1)";
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.borderColor = "var(--border-2)";
+          e.currentTarget.style.boxShadow = "none";
+        }}
+      />
+    </label>
   );
 }
