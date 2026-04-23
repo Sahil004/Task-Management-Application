@@ -1,11 +1,37 @@
 "use client";
 
 import clsx from "clsx";
-import { useState } from "react";
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverEvent,
+  DragOverlay,
+  DragStartEvent,
+  PointerSensor,
+  TouchSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  useDroppable,
+  UniqueIdentifier,
+  MeasuringStrategy,
+  closestCorners,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { useRef, useState } from "react";
 import { Task } from "@/lib/types";
 import { CircleAlert, CircleCheckBig, Loader } from "lucide-react";
 import { TASK_PRIORITY_META, TASK_STATUS_LABELS } from "@/lib/task-options";
 import { SurfaceCard } from "@/components/ui/surface-card";
+import { restrictToFirstScrollableAncestor } from "@dnd-kit/modifiers";
+
+const STATUSES = ["todo", "in-progress", "done"] as Task["status"][];
 
 const STATUS_META: Record<
   Task["status"],
@@ -65,21 +91,13 @@ function TaskCard({
   dragging,
   onEdit,
   onDelete,
-  onDragStart,
-  onDragEnd,
-  onDragOver,
-  onDrop,
-  isDragging,
+  overlay = false,
 }: {
   task: Task;
   dragging: boolean;
-  isDragging: boolean;
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
-  onDragStart: (e: React.DragEvent, id: string) => void;
-  onDragEnd: () => void;
-  onDragOver: (e: React.DragEvent) => void;
-  onDrop: (e: React.DragEvent, beforeId: string) => void;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
+  overlay?: boolean;
 }) {
   const pm = TASK_PRIORITY_META[task.priority];
   const isDone = task.status === "done";
@@ -87,17 +105,11 @@ function TaskCard({
   return (
     <SurfaceCard
       as="article"
-      draggable={!dragging}
-      onDragStart={(e) => onDragStart(e, task._id)}
-      onDragEnd={onDragEnd}
-      onDragOver={onDragOver}
-      onDrop={(e) => onDrop(e, task._id)}
       className={clsx(
-        "group cursor-grab p-3 sm:p-4 transition-all duration-200 active:cursor-grabbing",
-        isDragging && "scale-95 opacity-40",
+        "p-3 sm:p-4 transition-colors duration-200",
+        overlay && "shadow-2xl",
       )}
     >
-      {/* priority dot + title */}
       <div className="flex items-start gap-2.5 mb-3">
         <div
           className="w-2 h-2 rounded-full mt-1.5 shrink-0"
@@ -114,7 +126,6 @@ function TaskCard({
         </p>
       </div>
 
-      {/* description */}
       {task.description && (
         <p
           className="text-[11px] sm:text-xs leading-relaxed mb-3 pl-4 break-words"
@@ -124,7 +135,6 @@ function TaskCard({
         </p>
       )}
 
-      {/* meta row */}
       <div className="flex flex-wrap items-center justify-between gap-2 pl-4 mb-3">
         <span
           className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
@@ -156,42 +166,161 @@ function TaskCard({
         </div>
       </div>
 
-      {/* actions */}
-      <div className="flex gap-2 pl-4 flex-wrap">
-        <button
-          disabled={dragging}
-          onClick={() => onEdit(task._id)}
-          className="flex-1 py-1.5 rounded-xl text-[11px] sm:text-xs font-medium transition-all disabled:opacity-50"
-          style={{
-            border: "1px solid var(--border-2)",
-            color: "var(--fg-2)",
-            background: "var(--bg)",
-          }}
+      {!overlay && (
+        <div className="flex gap-2 pl-4 flex-wrap">
+          <button
+            disabled={dragging}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit?.(task._id);
+            }}
+            className="flex-1 py-1.5 rounded-xl text-[11px] sm:text-xs font-medium transition-all disabled:opacity-50"
+            style={{
+              border: "1px solid var(--border-2)",
+              color: "var(--fg-2)",
+              background: "var(--bg)",
+            }}
+          >
+            Edit
+          </button>
+          <button
+            disabled={dragging}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete?.(task._id);
+            }}
+            className="flex-1 py-1.5 rounded-xl text-xs font-medium transition-all disabled:opacity-50"
+            style={{
+              color: "#ff6e9c",
+              background: "rgba(255,110,156,0.08)",
+              border: "0.5px solid rgba(255,110,156,0.25)",
+            }}
+          >
+            Delete
+          </button>
+        </div>
+      )}
+    </SurfaceCard>
+  );
+}
+
+function SortableTaskCard({
+  task,
+  dragging,
+  onEdit,
+  onDelete,
+}: {
+  task: Task;
+  dragging: boolean;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task._id });
+
+  return (
+    <div
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        touchAction: "none",
+        cursor: isDragging ? "grabbing" : "grab",
+        opacity: isDragging ? 0.4 : 1,
+      }}
+    >
+      <TaskCard
+        task={task}
+        dragging={dragging}
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
+    </div>
+  );
+}
+
+function Column({
+  status,
+  tasks,
+  loading,
+  dragging,
+  isOver,
+  onEdit,
+  onDelete,
+}: {
+  status: Task["status"];
+  tasks: Task[];
+  loading: boolean;
+  dragging: boolean;
+  isOver: boolean;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+}) {
+  const meta = STATUS_META[status];
+  const { setNodeRef } = useDroppable({ id: status });
+
+  return (
+    <section
+      ref={setNodeRef}
+      className="rounded-2xl p-3 sm:p-4 flex flex-col gap-3 transition-all duration-200 min-h-[200px] max-h-screen overflow-y-auto min-w-[280px] md:w-auto shrink-0"
+      style={{
+        border: `1px solid ${isOver ? meta.color + "80" : "var(--border)"}`,
+        background: isOver ? meta.bg : "var(--bg-card)",
+      }}
+    >
+      <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center gap-2">
+          <div
+            className="w-2 h-2 rounded-full"
+            style={{ background: meta.color }}
+          />
+          <h3 className="text-sm font-semibold" style={{ color: "var(--fg)" }}>
+            {TASK_STATUS_LABELS[status]}
+          </h3>
+        </div>
+        <span
+          className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold"
+          style={{ color: meta.color, background: meta.bg }}
         >
-          Edit
-        </button>
-        <button
-          disabled={dragging}
-          onClick={() => onDelete(task._id)}
-          className="flex-1 py-1.5 rounded-xl text-xs font-medium transition-all disabled:opacity-50"
-          style={{
-            color: "#ff6e9c",
-            background: "rgba(255,110,156,0.08)",
-            border: "0.5px solid rgba(255,110,156,0.25)",
-          }}
-        >
-          Delete
-        </button>
+          {tasks.length}
+        </span>
       </div>
 
-      {/* drag hint */}
-      <p
-        className="text-[10px] mt-2.5 pl-4 opacity-60 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
-        style={{ color: "var(--fg-3)" }}
+      <SortableContext
+        items={tasks.map((t) => t._id)}
+        strategy={verticalListSortingStrategy}
       >
-        ⠿ drag to move
-      </p>
-    </SurfaceCard>
+        {loading ? (
+          Array.from({ length: 2 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-24 sm:h-28 rounded-2xl animate-pulse"
+              style={{ background: "var(--bg)" }}
+            />
+          ))
+        ) : tasks.length === 0 ? (
+          <EmptyCol status={status} />
+        ) : (
+          tasks.map((task) => (
+            <SortableTaskCard
+              key={task._id}
+              task={task}
+              dragging={dragging}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          ))
+        )}
+      </SortableContext>
+    </section>
   );
 }
 
@@ -214,111 +343,109 @@ export function TaskBoard({
     beforeTaskId?: string,
   ) => void | Promise<void>;
 }) {
-  const grouped = {
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [overColumn, setOverColumn] = useState<Task["status"] | null>(null);
+  const lastOverId = useRef<UniqueIdentifier | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 250, tolerance: 5 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const grouped: Record<Task["status"], Task[]> = {
     todo: tasks.filter((t) => t.status === "todo"),
     "in-progress": tasks.filter((t) => t.status === "in-progress"),
     done: tasks.filter((t) => t.status === "done"),
   };
 
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [activeColumn, setActiveColumn] = useState<Task["status"] | null>(null);
+  function handleDragStart({ active }: DragStartEvent) {
+    setActiveTask(tasks.find((t) => t._id === active.id) ?? null);
+  }
+
+  function handleDragOver({ over }: DragOverEvent) {
+    if (!over) {
+      setOverColumn(null);
+      return;
+    }
+    const id = over.id as string;
+    if (STATUSES.includes(id as Task["status"])) {
+      setOverColumn(id as Task["status"]);
+    } else {
+      const t = tasks.find((t) => t._id === id);
+      setOverColumn(t?.status ?? null);
+    }
+  }
+
+  function handleDragEnd({ active, over }: DragEndEvent) {
+    setActiveTask(null);
+    setOverColumn(null);
+    lastOverId.current = null;
+    if (!over) return;
+
+    const taskId = active.id as string;
+    const overId = over.id as string;
+
+    if (STATUSES.includes(overId as Task["status"])) {
+      void onReorder(taskId, overId as Task["status"]);
+      return;
+    }
+
+    const overTask = tasks.find((t) => t._id === overId);
+    if (overTask) {
+      void onReorder(taskId, overTask.status, overTask._id);
+    }
+  }
 
   return (
-    <div className=" flex gap-3 sm:gap-4 overflow-x-auto pb-2 lg:grid lg:grid-cols-3 items-start">
-      {(Object.keys(grouped) as Task["status"][]).map((status) => {
-        const meta = STATUS_META[status];
-        const isActive = activeColumn === status;
-
-        return (
-          <section
+    <DndContext
+      measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 lg:grid lg:grid-cols-3 items-start">
+        {STATUSES.map((status) => (
+          <Column
             key={status}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setActiveColumn(status);
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              const id = e.dataTransfer.getData("text/task-id");
-              if (id) void onReorder(id, status);
-              setDraggingId(null);
-              setActiveColumn(null);
-            }}
-            onDragLeave={() => {
-              if (activeColumn === status) setActiveColumn(null);
-            }}
-            className="rounded-2xl p-3 sm:p-4 flex flex-col gap-3 transition-all duration-200 min-h-[200px] max-h-screen overflow-y-auto min-w-[280px] md:w-auto shrink-0"
+            status={status}
+            tasks={grouped[status]}
+            loading={loading}
+            dragging={dragging}
+            isOver={overColumn === status}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
+        ))}
+      </div>
+
+      <DragOverlay
+        adjustScale={false}
+        modifiers={[restrictToFirstScrollableAncestor]}
+        dropAnimation={{
+          duration: 200,
+          easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)",
+        }}
+      >
+        {activeTask ? (
+          <div
             style={{
-              border: `1px solid ${isActive ? meta.color + "60" : "var(--border)"}`,
-              background: isActive ? meta.bg : "var(--bg-card)",
+              width: "280px",
+              transform: "rotate(2deg)",
+              opacity: 0.95,
+              pointerEvents: "none",
             }}
           >
-            {/* Column header */}
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{ background: meta.color }}
-                />
-                <h3
-                  className="text-sm font-semibold"
-                  style={{ color: "var(--fg)" }}
-                >
-                  {TASK_STATUS_LABELS[status]}
-                </h3>
-              </div>
-              <span
-                className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold"
-                style={{ color: meta.color, background: meta.bg }}
-              >
-                {grouped[status].length}
-              </span>
-            </div>
-
-            {/* Tasks */}
-            {loading ? (
-              Array.from({ length: 2 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-24 sm:h-28 rounded-2xl animate-pulse"
-                  style={{ background: "var(--bg)" }}
-                />
-              ))
-            ) : grouped[status].length === 0 ? (
-              <EmptyCol status={status} />
-            ) : (
-              grouped[status].map((task) => (
-                <TaskCard
-                  key={task._id}
-                  task={task}
-                  dragging={dragging}
-                  isDragging={draggingId === task._id}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  onDragStart={(e, id) => {
-                    e.dataTransfer.setData("text/task-id", id);
-                    e.dataTransfer.effectAllowed = "move";
-                    setDraggingId(id);
-                    setActiveColumn(task.status);
-                  }}
-                  onDragEnd={() => {
-                    setDraggingId(null);
-                    setActiveColumn(null);
-                  }}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e, beforeId) => {
-                    e.preventDefault();
-                    const id = e.dataTransfer.getData("text/task-id");
-                    if (id && id !== task._id)
-                      void onReorder(id, status, beforeId);
-                    setDraggingId(null);
-                    setActiveColumn(null);
-                  }}
-                />
-              ))
-            )}
-          </section>
-        );
-      })}
-    </div>
+            <TaskCard task={activeTask} dragging={false} overlay />
+          </div>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
   );
 }

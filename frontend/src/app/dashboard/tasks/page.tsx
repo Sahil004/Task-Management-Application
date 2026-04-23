@@ -308,10 +308,7 @@ export default function TasksPage() {
           </div>
 
           {/* Board */}
-          <div
-            className="animate-fade-up overflow-x-auto pb-2"
-            style={{ animationDelay: "0.1s" }}
-          >
+          <div className="animate-fade-up" style={{ animationDelay: "0.1s" }}>
             <TaskBoard
               tasks={taskState.items}
               loading={taskState.loading}

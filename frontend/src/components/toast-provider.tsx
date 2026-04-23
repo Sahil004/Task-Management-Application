@@ -24,10 +24,9 @@ interface ToastContextValue {
 const ToastContext = createContext<ToastContextValue | null>(null);
 
 const toneClasses: Record<ToastTone, string> = {
-  success:
-    "border-[rgba(62,207,184,0.2)]  bg-[var(--bg-card)] text-[var(--fg)]",
-  error: "border-[rgba(255,110,156,0.2)] bg-[var(--bg-card)] text-[var(--fg)]",
-  info: "border-[rgba(110,115,255,0.2)] bg-[var(--bg-card)] text-[var(--fg)]",
+  success: "border-[rgba(62,207,184,0.2)]   bg-[var(--bg)] text-[var(--fg)]",
+  error: "border-[rgba(255,110,156,0.2)]  bg-[var(--bg)] text-[var(--fg)]",
+  info: "border-[rgba(110,115,255,0.2)]  bg-[var(--bg)] text-[var(--fg)]",
 };
 
 const toneAccentClasses: Record<ToastTone, string> = {
@@ -54,8 +53,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div className="pointer-events-none fixed inset-x-0 top-4 z-[70] flex justify-center px-4">
-        <div className="flex w-full max-w-md flex-col gap-3">
+      <div className="pointer-events-none fixed bottom-4 right-4 z-[70] flex flex-col gap-2">
+        <div className="flex w-72 flex-col gap-2">
           {toasts.map((toast) => (
             <div
               key={toast.id}
