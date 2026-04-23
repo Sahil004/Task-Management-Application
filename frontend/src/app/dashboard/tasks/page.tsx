@@ -260,7 +260,7 @@ export default function TasksPage() {
 
           {/* Filters */}
           <div
-            className="flex overflow-x-auto items-center gap-2 sm:gap-3 mb-5 sm:mb-6 animate-fade-up"
+            className="flex overflow-x-auto pb-2 items-center gap-2 sm:gap-3 mb-5 sm:mb-6 animate-fade-up"
             style={{ animationDelay: "0.05s" }}
           >
             <TaskFilterSelect
