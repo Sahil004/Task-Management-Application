@@ -225,10 +225,10 @@ export default function DashboardPage() {
 
             {/* Workload pulse */}
             <div
-              className="rounded-2xl p-4 sm:p-5"
+              className="rounded-2xl p-4 sm:p-5 transition-colors"
               style={{
-                background: "#0f0f18",
-                border: "1px solid rgba(110,115,255,0.2)",
+                background: "var(--bg-card)",
+                border: "1px solid var(--border-2)",
               }}
             >
               <p
@@ -239,7 +239,7 @@ export default function DashboardPage() {
               </p>
               <h2
                 className="text-xl font-bold mb-4"
-                style={{ color: "#f4f4f6" }}
+                style={{ color: "var(--fg)" }}
               >
                 {loading ? "..." : `${backlog}% of tasks still need attention`}
               </h2>
