@@ -182,8 +182,8 @@ export function CustomSelect({
               top: menuStyle.top,
               left: menuStyle.left,
               width: menuStyle.width,
-              background: "rgba(20,20,28,0.95)",
-              backdropFilter: "blur(12px)",
+              background: "var(--bg-card)", // was rgba(20,20,28,0.95)
+              border: "1px solid var(--border-2)",
             }}
           >
             {options.map((option, i) => {
@@ -202,10 +202,8 @@ export function CustomSelect({
                   }}
                   className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-xs"
                   style={{
-                    background: highlighted
-                      ? "rgba(110,115,255,0.2)"
-                      : "transparent",
-                    color: active ? "#6e73ff" : "var(--fg-2)",
+                    background: highlighted ? "var(--bg-hover)" : "transparent",
+                    color: active ? "var(--accent)" : "var(--fg-2)", // was hardcoded #6e73ff
                   }}
                 >
                   {option.label}
