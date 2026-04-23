@@ -5,10 +5,7 @@ import { TaskFormValues } from "@/lib/types";
 import { CircleAlert, Loader } from "lucide-react";
 import { CustomSelect, SelectOption } from "@/components/ui/custom-select";
 import { GradientCtaButton } from "@/components/ui/gradient-cta-button";
-import {
-  TASK_PRIORITY_OPTIONS,
-  TASK_STATUS_OPTIONS,
-} from "@/lib/task-options";
+import { TASK_PRIORITY_OPTIONS, TASK_STATUS_OPTIONS } from "@/lib/task-options";
 
 const DEFAULT: TaskFormValues = {
   title: "",

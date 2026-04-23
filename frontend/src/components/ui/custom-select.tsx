@@ -29,6 +29,7 @@ export function CustomSelect({
     top: number;
     left: number;
     width: number;
+    maxHeight: number; // ← add this
   } | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -38,25 +39,27 @@ export function CustomSelect({
     [value, options],
   );
 
-  // 🔥 Positioning (like floating-ui lite)
   const updatePosition = () => {
     if (!rootRef.current) return;
 
     const rect = rootRef.current.getBoundingClientRect();
+
     const viewportHeight = window.innerHeight;
+    const spaceBelow = viewportHeight - rect.bottom;
+    const spaceAbove = rect.top;
 
-    let top = rect.bottom + 6;
-
-    // flip if overflow bottom
-    if (rect.bottom + 240 > viewportHeight) {
-      top = rect.top - 240 - 6;
-    }
+    const maxHeight = 240;
+    const openUp = spaceBelow < 200 && spaceAbove > spaceBelow;
 
     setMenuStyle({
-      top,
       left: rect.left,
       width: rect.width,
+      maxHeight: Math.min(maxHeight, openUp ? spaceAbove : spaceBelow),
+      top: rect.bottom + 6, // 🔥 ALWAYS anchor below
     });
+
+    // store direction separately if needed
+    (rootRef).current.dataset.placement = openUp ? "top" : "bottom";
   };
 
   useLayoutEffect(() => {
@@ -80,13 +83,19 @@ export function CustomSelect({
   // 🔥 Outside click
   useEffect(() => {
     const handle = (e: MouseEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) {
+      if (
+        !rootRef.current?.contains(e.target as Node) &&
+        !listRef.current?.contains(e.target as Node)
+      ) {
         setOpen(false);
       }
     };
 
-    document.addEventListener("mousedown", handle);
-    return () => document.removeEventListener("mousedown", handle);
+    // Use 'click' instead of 'mousedown' + delay to let option onClick fire first
+    const delayed = (e: MouseEvent) => setTimeout(() => handle(e), 100);
+
+    document.addEventListener("click", delayed);
+    return () => document.removeEventListener("click", delayed);
   }, []);
 
   // 🔥 Keyboard navigation
@@ -177,12 +186,12 @@ export function CustomSelect({
           <div
             ref={listRef}
             role="listbox"
-            className="fixed z-[9999] max-h-60 overflow-auto rounded-xl border p-1 shadow-xl"
+            className="fixed z-[9999] overflow-auto rounded-xl border p-1 shadow-xl bg-[var(--bg)]"
             style={{
               top: menuStyle.top,
               left: menuStyle.left,
               width: menuStyle.width,
-              background: "var(--bg-card)", // was rgba(20,20,28,0.95)
+              maxHeight: menuStyle.maxHeight, // ← dynamic
               border: "1px solid var(--border-2)",
             }}
           >
@@ -195,6 +204,7 @@ export function CustomSelect({
                   key={option.value}
                   role="option"
                   aria-selected={active}
+                  onMouseDown={(e) => e.preventDefault()} // ← prevents blur/close before onClick
                   onMouseEnter={() => setHighlightedIndex(i)}
                   onClick={() => {
                     onChange(option.value);

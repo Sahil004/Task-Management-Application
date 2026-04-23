@@ -38,8 +38,7 @@ export default function TasksPage() {
 
   const [statusFilter, setStatusFilter] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("");
-  const [sortBy, setSortBy] = useState<"createdAt" | "dueDate">("createdAt");
-  const [order, setOrder] = useState<"asc" | "desc">("desc");
+  const [sortBy, setSortBy] = useState("createdAt|desc");
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -60,35 +59,38 @@ export default function TasksPage() {
 
   useEffect(() => {
     if (!auth.token) return;
+    const [field, dir] = sortBy.split("|");
     void dispatch(
       fetchTasks({
         status: statusFilter,
         priority: priorityFilter,
-        sortBy,
-        order,
+        sortBy: field,
+        order: dir as "asc" | "desc",
       }),
     );
-  }, [auth.token, dispatch, order, priorityFilter, sortBy, statusFilter]);
+  }, [auth.token, dispatch, sortBy, priorityFilter, statusFilter]);
 
   const editingTask = useMemo(
     () => taskState.items.find((t) => t._id === editingTaskId) ?? null,
     [editingTaskId, taskState.items],
   );
 
+  const refetchTasks = () => {
+    const [field, dir] = sortBy.split("|");
+    return dispatch(
+      fetchTasks({
+        status: statusFilter,
+        priority: priorityFilter,
+        sortBy: field,
+        order: dir as "asc" | "desc",
+      }),
+    );
+  };
+
   const handleSubmit = async (values: TaskFormValues) => {
     if (editingTaskId) {
       await dispatch(updateTask({ id: editingTaskId, values })).unwrap();
-      await Promise.all([
-        dispatch(
-          fetchTasks({
-            status: statusFilter,
-            priority: priorityFilter,
-            sortBy,
-            order,
-          }),
-        ),
-        dispatch(fetchDashboard()),
-      ]);
+      await Promise.all([refetchTasks(), dispatch(fetchDashboard())]);
       showToast({
         tone: "success",
         title: "Task updated",
@@ -99,17 +101,7 @@ export default function TasksPage() {
       return;
     }
     await dispatch(createTask(values)).unwrap();
-    await Promise.all([
-      dispatch(
-        fetchTasks({
-          status: statusFilter,
-          priority: priorityFilter,
-          sortBy,
-          order,
-        }),
-      ),
-      dispatch(fetchDashboard()),
-    ]);
+    await Promise.all([refetchTasks(), dispatch(fetchDashboard())]);
     showToast({
       tone: "success",
       title: "Task created",
@@ -121,17 +113,7 @@ export default function TasksPage() {
   const handleDelete = async () => {
     if (!deleteTargetId) return;
     await dispatch(deleteTask(deleteTargetId)).unwrap();
-    await Promise.all([
-      dispatch(
-        fetchTasks({
-          status: statusFilter,
-          priority: priorityFilter,
-          sortBy,
-          order,
-        }),
-      ),
-      dispatch(fetchDashboard()),
-    ]);
+    await Promise.all([refetchTasks(), dispatch(fetchDashboard())]);
     showToast({
       tone: "info",
       title: "Task deleted",
@@ -203,13 +185,10 @@ export default function TasksPage() {
   ];
 
   const sortByOptions: SelectOption[] = [
-    { value: "createdAt", label: "Sort: Created" },
-    { value: "dueDate", label: "Sort: Due Date" },
-  ];
-
-  const orderOptions: SelectOption[] = [
-    { value: "desc", label: "Newest First" },
-    { value: "asc", label: "Oldest First" },
+    { value: "createdAt|desc", label: "Newest Created" },
+    { value: "createdAt|asc", label: "Oldest Created" },
+    { value: "dueDate|asc", label: "Due Soonest" },
+    { value: "dueDate|desc", label: "Due Latest" },
   ];
 
   return (
@@ -249,7 +228,7 @@ export default function TasksPage() {
             </GradientCtaButton>
           </div>
 
-          {/* accent bar */}
+          {/* Accent bar */}
           <div
             className="h-0.5 rounded-full mb-5 sm:mb-6"
             style={{
@@ -277,23 +256,16 @@ export default function TasksPage() {
             />
             <TaskFilterSelect
               value={sortBy}
-              onChange={(value) => setSortBy(value as "createdAt" | "dueDate")}
+              onChange={setSortBy}
               options={sortByOptions}
               placeholder="Sort"
-            />
-            <TaskFilterSelect
-              value={order}
-              onChange={(value) => setOrder(value as "asc" | "desc")}
-              options={orderOptions}
-              placeholder="Order"
             />
             {(statusFilter || priorityFilter) && (
               <button
                 onClick={() => {
                   setStatusFilter("");
                   setPriorityFilter("");
-                  setSortBy("createdAt");
-                  setOrder("desc");
+                  setSortBy("createdAt|desc");
                 }}
                 className="px-3 py-1.5 sm:py-2 rounded-xl text-xs font-medium transition-all"
                 style={{
