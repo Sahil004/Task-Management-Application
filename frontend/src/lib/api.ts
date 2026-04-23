@@ -1,20 +1,23 @@
-import { tokenStorage } from './token-storage';
+import { tokenStorage } from "./token-storage";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL =
+  `${process.env.NEXT_PUBLIC_API_URL}/api` || "http://localhost:5000/api";
 
 interface ApiOptions extends RequestInit {
   auth?: boolean;
 }
 
-
-export async function api<T>(path: string, options: ApiOptions = {}): Promise<T> {
+export async function api<T>(
+  path: string,
+  options: ApiOptions = {},
+): Promise<T> {
   const headers = new Headers(options.headers);
-  headers.set('Content-Type', 'application/json');
+  headers.set("Content-Type", "application/json");
 
   if (options.auth) {
     const token = tokenStorage.getToken();
     if (token) {
-      headers.set('Authorization', `Bearer ${token}`);
+      headers.set("Authorization", `Bearer ${token}`);
     }
   }
 
