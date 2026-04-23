@@ -106,7 +106,7 @@ function TaskCard({
     <SurfaceCard
       as="article"
       className={clsx(
-        "p-3 sm:p-4 transition-colors duration-200",
+        "p-3 sm:p-4 transition-colors duration-200 w-[280px] cursor-pointer lg:w-auto",
         overlay && "shadow-2xl",
       )}
     >
