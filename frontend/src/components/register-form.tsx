@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { registerUser } from "@/lib/store/auth-slice";
 import { useAppDispatch } from "@/lib/hooks";
+import { Eye, EyeOff } from "lucide-react";
 
 import InputField from "@/components/ui/InputField";
 import ErrorBox from "@/components/ui/ErrorBox";
@@ -16,6 +17,7 @@ export function RegisterForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -24,28 +26,20 @@ export function RegisterForm() {
     e.preventDefault();
     setError("");
 
-    if (name.trim().length < 2) {
+    if (name.trim().length < 2)
       return setError("Name must be at least 2 characters.");
-    }
-    if (!email.includes("@")) {
-      return setError("Enter a valid email.");
-    }
-    if (password.length < 6) {
+    if (!email.includes("@")) return setError("Enter a valid email.");
+    if (password.length < 6)
       return setError("Password must be at least 6 characters.");
-    }
 
     setLoading(true);
     try {
       await dispatch(registerUser({ name, email, password })).unwrap();
       router.replace("/dashboard");
     } catch (err) {
-      if (typeof err === "string") {
-        setError(err);
-      } else if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Unable to register.");
-      }
+      if (typeof err === "string") setError(err);
+      else if (err instanceof Error) setError(err.message);
+      else setError("Unable to register.");
     } finally {
       setLoading(false);
     }
@@ -83,13 +77,24 @@ export function RegisterForm() {
         placeholder="you@example.com"
       />
 
-      <InputField
-        label="Password"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="At least 6 characters"
-      />
+      <div className="relative">
+        <InputField
+          label="Password"
+          type={showPassword ? "text" : "password"}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="At least 6 characters"
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword((v) => !v)}
+          className="absolute right-3 bottom-3 p-1"
+          style={{ color: "var(--fg-2)" }}
+          tabIndex={-1}
+        >
+          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+        </button>
+      </div>
 
       {error && <ErrorBox message={error} />}
 

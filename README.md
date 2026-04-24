@@ -83,14 +83,14 @@ frontend/
 
 Copy `backend/.env.example` to `backend/.env` and fill in the values.
 
-| Variable | Required | Description |
-| --- | --- | --- |
-| `PORT` | No | Backend server port. Defaults to `5000`. |
-| `MONGO_URI` | Yes | MongoDB connection string. |
-| `JWT_SECRET` | Yes | Secret used to sign JWT tokens. |
-| `JWT_EXPIRES_IN` | No | JWT lifetime, for example `7d`. |
-| `CLIENT_URL` | No | Allowed frontend origin for CORS (default: `http://localhost:3000`). |
-| `NODE_ENV` | No | Runtime mode such as `development` or `test`. |
+| Variable         | Required | Description                                                          |
+| ---------------- | -------- | -------------------------------------------------------------------- |
+| `PORT`           | No       | Backend server port. Defaults to `5000`.                             |
+| `MONGO_URI`      | Yes      | MongoDB connection string.                                           |
+| `JWT_SECRET`     | Yes      | Secret used to sign JWT tokens.                                      |
+| `JWT_EXPIRES_IN` | No       | JWT lifetime, for example `7d`.                                      |
+| `CLIENT_URL`     | No       | Allowed frontend origin for CORS (default: `http://localhost:3000`). |
+| `NODE_ENV`       | No       | Runtime mode such as `development` or `test`.                        |
 
 ## Local Development Setup
 
@@ -198,6 +198,8 @@ The frontend will start at `http://localhost:3000`.
 - Backend unit/integration-style route tests (Jest + Supertest)
 - API documentation via Swagger/OpenAPI
 - Dark mode toggle support in frontend theme state
+- CI/CD pipeline configuration (GitHub Actions or similar)
+- Dockerised setup with docker-compose for one-command startup
 
 ## Deliverables Status
 
@@ -296,24 +298,24 @@ docker compose down
 
 ### Auth
 
-| Method | Endpoint | Description | Protected |
-| --- | --- | --- | --- |
-| `POST` | `/api/auth/register` | Register a new user | No |
-| `POST` | `/api/auth/login` | Login and receive JWT | No |
-| `POST` | `/api/auth/logout` | Logout response; frontend should clear token | Yes |
-| `GET` | `/api/auth/me` | Get current authenticated user | Yes |
+| Method | Endpoint             | Description                                  | Protected |
+| ------ | -------------------- | -------------------------------------------- | --------- |
+| `POST` | `/api/auth/register` | Register a new user                          | No        |
+| `POST` | `/api/auth/login`    | Login and receive JWT                        | No        |
+| `POST` | `/api/auth/logout`   | Logout response; frontend should clear token | Yes       |
+| `GET`  | `/api/auth/me`       | Get current authenticated user               | Yes       |
 
 ### Tasks
 
-| Method | Endpoint | Description | Protected |
-| --- | --- | --- | --- |
-| `GET` | `/api/tasks` | List current user tasks with filters/sorting | Yes |
-| `POST` | `/api/tasks` | Create a task | Yes |
-| `GET` | `/api/tasks/dashboard` | Dashboard summary statistics | Yes |
-| `PATCH` | `/api/tasks/reorder` | Bulk reorder tasks for board views | Yes |
-| `GET` | `/api/tasks/:id` | Get a single task | Yes |
-| `PUT` | `/api/tasks/:id` | Update a task | Yes |
-| `DELETE` | `/api/tasks/:id` | Delete a task | Yes |
+| Method   | Endpoint               | Description                                  | Protected |
+| -------- | ---------------------- | -------------------------------------------- | --------- |
+| `GET`    | `/api/tasks`           | List current user tasks with filters/sorting | Yes       |
+| `POST`   | `/api/tasks`           | Create a task                                | Yes       |
+| `GET`    | `/api/tasks/dashboard` | Dashboard summary statistics                 | Yes       |
+| `PATCH`  | `/api/tasks/reorder`   | Bulk reorder tasks for board views           | Yes       |
+| `GET`    | `/api/tasks/:id`       | Get a single task                            | Yes       |
+| `PUT`    | `/api/tasks/:id`       | Update a task                                | Yes       |
+| `DELETE` | `/api/tasks/:id`       | Delete a task                                | Yes       |
 
 ### Task Query Parameters
 
@@ -321,8 +323,7 @@ docker compose down
 
 - `status`: `todo`, `in-progress`, `done`
 - `priority`: `low`, `medium`, `high`
-- `sortBy`: `dueDate`, `createdAt`, `priority`, `title`
-- `order`: `asc`, `desc`
+- `sortBy`: `createdAt|desc` (Newest Created), `createdAt|asc` (Oldest Created), `dueDate|asc` (Due Soonest), `dueDate|desc` (Due Latest)
 
 ## API Documentation
 
@@ -338,10 +339,21 @@ This backend uses stateless JWT authentication. Because the token is not stored 
 Suggested screenshots for submission:
 
 - Landing page
+![Landing Page Dark](./screenshots/landing-page-dark.png)
+![Landing Page Light](./screenshots/landing-page-light.png)
+
 - Login / register screens
+![Registration Page](./screenshots/registration-page.png)
+![Login Page](./screenshots/login-page.png) 
+
 - Dashboard with summary cards
+![Dashboard Summary Dark](./screenshots/dashboard-dark.png)
+![Dashboard Summary Light](./screenshots/dashboard-light.png)
+
 - Task board with task form visible
-- Mobile dashboard layout
+![Task board Dark](./screenshots/taskboard-dark.png)
+![Task board Light](./screenshots/taskboard-light.png)
+![Task form](./screenshots/task-form.png)
 
 The backend API is documented through Swagger for review and manual testing, and the frontend is now wired against that REST API.
 
